@@ -1,0 +1,1 @@
+{"ast":null,"code":"// This is free and unencumbered software released into the public domain.\n// See LICENSE.md for more information.\nvar encoding = require(\"./lib/encoding.js\");\n\nmodule.exports = {\n  TextEncoder: encoding.TextEncoder,\n  TextDecoder: encoding.TextDecoder\n};","map":null,"metadata":{},"sourceType":"script"}

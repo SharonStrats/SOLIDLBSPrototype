@@ -1,0 +1,47 @@
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+  PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
+  PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+  PREFIX : <http://janeirodigital.com/ns#layout>
+
+  START=@<#UserLocation>
+
+  <#UserLocation> {
+    vcard:fn xsd:string MINLENGTH 1 MAXLENGTH 64 {1}
+      // rdfs:label "Name"@en
+      // rdfs:label "Nombre"@es ;
+    vcard:role xsd:string MINLENGTH 0 MAXLENGTH 64 {1}
+      // rdfs:label "Role"@en
+      // rdfs:label "Rol"@es ;
+    vcard:organization-name xsd:string MINLENGTH 0 MAXLENGTH 64 {1}
+      // rdfs:label "Company"@en
+      // rdfs:label "CompaÃ±Ã­a"@es ;
+    vcard:hasAddress @<#UserLocationAddress> *
+      // rdfs:label "Address"@en
+      // rdfs:label "DirecciÃ³n"@es ;
+    vcard:hasGeo xsd:string MINLENGTH 0 MAXLENGTH 64 {1}
+      // rdfs:label "Geo"@en
+      // rdfs:label "Geo"@es;
+    vcard:note xsd:string MINLENGTH 0 MAXLENGTH 10000 {1}
+      // rdfs:label "General Notes"@en 
+      // rdfs:label "Notas generales"@es ;
+  }
+
+
+  <#UserLocationAddress> CLOSED {
+    vcard:street-address xsd:string MINLENGTH 0 MAXLENGTH 64 {1}
+      // rdfs:label "Street Address"@en
+      // rdfs:label "DirecciÃ³n"@es ;
+    vcard:locality xsd:string MINLENGTH 0 MAXLENGTH 64 {1}
+      // rdfs:label "Locality"@en
+      // rdfs:label "Localidad"@es ;
+    vcard:postal-code xsd:string MINLENGTH 0 MAXLENGTH 16 {1}
+      // rdfs:label "Postal Code"@en
+      // rdfs:label "CÃ³digo Postal"@es ;
+    vcard:region xsd:string MINLENGTH 0 MAXLENGTH 64 {1}
+      // rdfs:label "Region"@en
+      // rdfs:label "RegiÃ³n"@es ;
+    vcard:country-name xsd:string MINLENGTH 0 MAXLENGTH 64 {1}
+      // rdfs:label "Country"@en
+      // rdfs:label "Pais"@es ;
+  }
+
