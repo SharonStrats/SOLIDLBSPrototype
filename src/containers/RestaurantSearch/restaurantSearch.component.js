@@ -13,8 +13,26 @@ import {
 //import { Container } from 'react-bootstrap';
 import { withToastManager } from 'react-toast-notifications';
 import zomato from '../../api/zomato';
+import { fetchDocument } from 'tripledoc';
+import { foaf, rdfs } from 'rdf-namespaces';
+import auth  from 'solid-auth-client';
 
 
+  const getWebId = async () =>  {
+    let session = await auth.currentSession();
+    if (session) { 
+      console.log(session);
+      return session.webId;
+    }
+
+    //const identityProvider = await getIdentifyProvider();
+
+    //auth.login(identityProvider);
+  }
+
+  function getName(profile) {
+    return profile.getLiteral(foaf.name);
+  }
 
 const RestaurantCard = (props) => {
 
@@ -44,9 +62,21 @@ class RestaurantSearchContent extends React.Component  {
     this.getRestaurants();
       
   }
-//Need to get the location from the solid server and convert to the entity_id 
-   getLocation() {
 
+
+
+ /* async function getFriends(profile) {
+    const friendsDocumentUrl = profile.getNodeRef(rdfs.seeAlso);
+    const friendsDocument = await fetchDocument(friendsDocumentUrl);
+    return friendsDocument.getSubjectsOfType(foaf.Person);
+  } */
+
+//Need to get the location from the solid server and convert to the entity_id 
+   async getLocation() {
+    var testProfile = await getWebId();
+    //var name = getName(testProfile); 
+    console.log(testProfile);
+    //console.log("Name: " + name);
 
     return 'entity_id=94741%20&entity_type=zone';
 
