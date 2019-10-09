@@ -13,11 +13,30 @@ import { namedNode } from '@rdfjs/data-model';
 import { fetchDocument, createDocument } from 'tripledoc';
 import { solid, foaf, schema, space, rdf } from 'rdf-namespaces';
 
+var location = {};
+async function addLocation(profile) {
+    const locationList = getLocationList(profile);
+    const newLocation = locationList.addSubject();
+    getUserLocation();
+   
+    newLocation.addNodeRef(rdf.type, schema.GeoCoordinates);
+    newLocation.addLiteral(schema.latitude, location.latitude);
+    newLocation.addLiteral(schema.longitude, location.longitude);
+
+    const success = await locationList.save([newLocation]);
+    return success;
+}
+
+function getUserLocation() {
+    navigator.geolocation.getCurrentPosition(setLocation);
+}
+
 //Code below taken and modified from https://vincenttunru.gitlab.io/tripledoc/docs/writing-a-solid-app
 async function initialiseLocationList(profile, typeIndex) {
     const storage = profile.getNodeRef(space.storage);
 
     const locationListUrl = storage + 'public/location.ttl';
+
     
     //Create the new document
     const locationList = createDocument(locationListUrl);
@@ -31,8 +50,6 @@ async function initialiseLocationList(profile, typeIndex) {
     await typeIndex.save([ typeRegistration]);
 
     return locationList;
-
-
 }
 
 async function getLocationList(profile) {
@@ -55,8 +72,20 @@ async function getLocationList(profile) {
     return await fetchDocument(locationListUrl);
 }
 
+const setLocation = (position) => {
+
+    console.log("Latitude" + position.coords.latitude);
+    console.log("Longitude" + position.coords.longitude);
+    location = { 
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude
+  };
+}
+
 async function getData(webId) {
     // loading new events
+    var latitude = "";
+    var longitude = "";
     const webIdDoc = await fetchDocument(webId);
     /* 2. Read the Subject representing the current user: */
     const user = webIdDoc.getSubject(webId);
@@ -64,8 +93,16 @@ async function getData(webId) {
     console.log(user.getLiteral(foaf.name));
 
     getLocationList(user);
-    console.log(user.getLiteral(schema.latitude));
-    console.log(user.getLiteral(schema.longitude));
+    //What about getSafeLiteral instead of getLiteral  need node-solid-server
+    //could use 
+// two variables permission and actual location information...
+    console.log("get data latitude" + user.getLiteral(schema.latitude));
+    console.log("get data longitude" + user.getLiteral(schema.longitude));
+    latitude = user.getLiteral(schema.latitude);
+    longitude = user.getLiteral(schema.longitude);
+    if ((latitude == null) || (longitude == null)) {
+        //addLocation(webId);
+    }
     //A little unsure about how to represent this, store lat and long separately or
     //should I used the geo class which is a GeoCoordinates and that has 
     //properties  latitude, longitude, postalCode, address and addressCountry.
@@ -86,7 +123,9 @@ async function getData(webId) {
     const webId = useWebId();
     console.log("Web ID: " + webId);
     //Not sure what the if statement below is doing..
-    if (webId !== undefined) {
+
+ 
+     if (webId !== undefined) {
         //var CUPurl = webId.replace('profile/card#me', '') + 'private/events#';
         var CUPurl = webId;
         getData(CUPurl);

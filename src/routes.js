@@ -10,6 +10,7 @@ import {
   Welcome,
   RegistrationSuccess,
   Profile,
+  Location,
   RestaurantSearch
 } from "./containers";
 
@@ -23,6 +24,11 @@ const privateRoutes = [
     id: "profile",
     path: "/profile",
     component: Profile
+  },
+  {
+    id: "location",
+    path: "/location",
+    component: Location
   },
   {
     id: "restaurantSearch",

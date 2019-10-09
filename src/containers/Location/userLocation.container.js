@@ -10,9 +10,9 @@ import {
     ShexForm,
     AutoSaveNotification,
     WebId,
-} from './restaurantSearch.style';
+} from './userLocation.style';
+import LocationContent from './userLocation.component';
 //import { Image } from './components';
-import zomato from '../../api/zomato';
 
 //const defaultProfilePhoto = '/img/icon/empty-profile.svg';
 
@@ -29,31 +29,10 @@ const RestaurantSearch = ({ toastManager }) => {
     const webId = useWebId();
     const { t, i18n } = useTranslation();
 
-    const successCallback = () => {
-        console.log("I was successful");
-        toastManager.add(
-            [t('profile.successTitle'), t('profile.successCallback')],
-            {
-                appearance: 'success',
-            }
-        );
-    };
-
-    const errorCallback = e => {
-        const code = e.code || e.status;
-        const messageError = code
-            ? `profile.errors.${code}`
-            : `profile.errors.default`;
-        if (code && code !== 200)
-            toastManager.add(['Error', t(messageError)], {
-                appearance: 'error',
-                autoDismiss: false,
-            });
-    };
-
     onSearchSubmit2('test');
+    
     return (
-        <UserLocationWrapper data-testid="restaurant-component">
+        <UserLocationWrapper data-testid="userLocation-component">
             <UserLocationContainer>
                 {webId && (
                     <Fragment>
@@ -66,72 +45,14 @@ const RestaurantSearch = ({ toastManager }) => {
                                 }}
                             />
                         </Header>
+                        <LocationContent
+                            latitude={latitude}
+                            longitude={longitude}
+                            name={name}
+                            isLoading={isLoading}
+                        />
 
-                        <AutoSaveNotification className="banner-wrap--warning banner">
-                            <div className="banner-wrap__content">
-                                <i className="icon fa fa-exclamation-circle" />
-                                {t('profile.autosaveNotification')}
-                            </div>
-                        </AutoSaveNotification>
-
-                        <ShexForm>
-                            <WebId>
-                                <FontAwesomeIcon icon="id-card" />
-                                <a
-                                    href={webId}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
-                                    {webId}
-                                </a>
-                            </WebId>
-                            <ShexFormBuilder
-                                {...{
-                                    documentUri: webId,
-                                    shexUri:
-                                        'https://shexshapes.inrupt.net/public/shapes/string.shex',
-                                    theme: {
-                                        form: 'shexForm',
-                                        shexPanel: 'shexPanel',
-                                        shexRoot: 'shexRoot',
-                                        deleteButton:
-                                            'deleteButton ids-button-stroke ids-button-stroke--secondary',
-                                        inputContainer: 'inputContainer',
-                                        addButtonStyle:
-                                            'addButton ids-button-stroke ids-button-stroke--secondary',
-                                    },
-                                    languageTheme: {
-                                        language: i18n.language.substring(0, 2),
-                                        saveBtn: t('profile.saveBtn'),
-                                        resetBtn: t('profile.resetBtn'),
-                                        addButtonText: t('profile.addBtn'),
-                                        deleteButton: t('profile.deleteBtn'),
-                                        dropdownDefaultText: t(
-                                            'profile.dropdownDefaultText'
-                                        ),
-                                        warningResolution: t(
-                                            'profile.warningResolution'
-                                        ),
-                                        formValidate: {
-                                            minMxNumberInclusive: t(
-                                                'profile.minMxNumberInclusive'
-                                            ),
-                                            minMxNumberExclusive: t(
-                                                'profile.minMxNumberExclusive'
-                                            ),
-                                            minMaxString: t(
-                                                'profile.minMaxString'
-                                            ),
-                                            default: t('profile.defaultError'),
-                                        },
-                                    },
-                                    successCallback,
-                                    errorCallback,
-                                    autoSaveMode: true,
-                                }}
-                            />
-                        </ShexForm>
-                    </Fragment>
+                 </Fragment>
                 )}
             </UserLocationContainer>
         </UserLocationWrapper>
