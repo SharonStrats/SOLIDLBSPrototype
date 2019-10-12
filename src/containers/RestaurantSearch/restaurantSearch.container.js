@@ -8,8 +8,8 @@ import {
     RestaurantSearchContainer,
     RestaurantSearchWrapper
 } from './restaurantSearch.style';
-import data from '@solid/query-ldflex';
-import { namedNode } from '@rdfjs/data-model';
+//import data from '@solid/query-ldflex';
+//import { namedNode } from '@rdfjs/data-model';
 import { fetchDocument, createDocument } from 'tripledoc';
 import { solid, foaf, schema, space, rdf } from 'rdf-namespaces';
 
@@ -35,17 +35,17 @@ const fetchCoordinates = async () => {
         console.error(error);
     }
 };
-async function addLocation(profile, locationList) {
+async function addLocation(locationDoc) {
 
     location = await fetchCoordinates();
   
-    const newLocation = await locationList.addSubject();
+    const newLocation = await locationDoc.addSubject();
 
     newLocation.addNodeRef(rdf.type, schema.GeoCoordinates);
     newLocation.addLiteral(schema.latitude, location.latitude);
     newLocation.addLiteral(schema.longitude, location.longitude);
 
-    const success = await locationList.save([newLocation]);
+    const success = await locationDoc.save([newLocation]);
     return success;
 }
 
@@ -65,13 +65,13 @@ async function initialiseLocationList(profile, typeIndex) {
     const typeRegistration = typeIndex.addSubject();
     typeRegistration.addNodeRef(rdf.type, solid.TypeRegistration)
     typeRegistration.addNodeRef(solid.instance, locationList.asNodeRef())
-    typeRegistration.addNodeRef(solid.forClass, solid.forClass)
+    typeRegistration.addNodeRef(solid.forClass, schema.GeoCoordinates)
     await typeIndex.save([ typeRegistration]);
 
     return locationList;
 }
 
-async function getLocationList(profile) {
+async function getLocationDoc(profile) {
     //First attempt will be making it public, but really
     //want to make it private
     /*  
@@ -84,6 +84,7 @@ async function getLocationList(profile) {
     const publicTypeIndex = await fetchDocument(publicTypeIndexUrl);
     const locationListEntry = publicTypeIndex.findSubject(solid.forClass, schema.GeoCoordinates)
 
+    console.log(JSON.stringify(locationListEntry));
     if (locationListEntry === null) {
        return initialiseLocationList(profile, publicTypeIndex);
     }
@@ -91,16 +92,13 @@ async function getLocationList(profile) {
     return await fetchDocument(locationListUrl);
 }
 
-const setLocation = (position) => {
-   
-   var location =  { 
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude
-  };
-
-}
-
-async function getData(webId) {
+/*
+async function getFriends(profile) {
+  const friendsDocumentUrl = profile.getNodeRef(rdfs.seeAlso);
+  const friendsDocument = await fetchDocument(friendsDocumentUrl);
+  return friendsDocument.getSubjectsOfType(foaf.Person);
+} */
+const getData = async webId => {
     // loading new events
     var latitude = "";
     var longitude = "";
@@ -108,20 +106,30 @@ async function getData(webId) {
     /* 2. Read the Subject representing the current user: */
     const user = webIdDoc.getSubject(webId);
     /* 3. Get their foaf:name: */
-    console.log(user.getLiteral(foaf.name));
+    var name = user.getLiteral(foaf.name);
 
-    var locationList = await getLocationList(user);
+    var locationDoc = await getLocationDoc(user);
+    console.log("getData LocationDoc " + JSON.stringify(locationDoc));
+     //should change the name to document
     //What about getSafeLiteral instead of getLiteral  need node-solid-server
     //could use 
 // two variables permission and actual location information...
-    console.log("get data latitude" + user.getLiteral(schema.latitude));
-    console.log("get data longitude" + user.getLiteral(schema.longitude));
-    latitude = user.getLiteral(schema.latitude);
-    longitude = user.getLiteral(schema.longitude);
-   if ((latitude == null) || (longitude == null)) { 
-        var status = await addLocation(webId, locationList);        
-    }
 
+
+//fetching isn't work, can't seem to find location information
+    const location = await locationDoc.getSubject();
+    console.log("get data location " + location.toString());
+    console.log(location.getNodeRef(rdf.type, schema.GeoCoordinates)); //returning null
+    latitude = location.getLiteral(schema.latitude); //returning null
+    longitude = location.getLiteral(schema.longitude); //returning null
+    
+    console.log(latitude);
+    console.log(longitude);
+    if ((latitude == null) || (longitude == null)) { 
+        var status = await addLocation(locationDoc);  
+        console.log(status);      
+    } 
+    return { name: {name} };
 } 
 
 /**
@@ -141,15 +149,15 @@ async function getData(webId) {
      if (webId !== undefined) {
         //var CUPurl = webId.replace('profile/card#me', '') + 'private/events#';
         var CUPurl = webId;
-        getData(CUPurl);
+        var data = getData(CUPurl);
+        console.log("Data name " + data.name);
     } else {
         //Not fetched yet.
         const isLoading = true;
     }
     
-    const image = '';
+    const coolImage = '';
     const isLoading = false;
-    const name = 'sharon';
         return (
             <RestaurantSearchWrapper data-testid="restaurant-component">
                 <RestaurantSearchContainer>
@@ -160,8 +168,8 @@ async function getData(webId) {
                         <RestaurantSearchContent
                             city="Melbourne"
                             state="Victoria"
-                            name={name}
-                            image={image}
+                            name={data.name}
+                            image={coolImage}
                             isLoading={isLoading}
                         />
                         </Fragment>
