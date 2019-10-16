@@ -74,7 +74,13 @@ const NavBar = (props: Props) => {
                         <img src="/img/inrupt2.svg" alt="restaurant" />
                     </Link>
                     <Link to="/location">
-                        <img src="/img/inrupt2.svg" alt="location" />
+                        <img src="/img/inrupt2.svg" alt="getlocation" />
+                    </Link>
+                    <Link to="/addFriend">
+                        <img src="/img/inrupt2.svg" alt="addFriend" />
+                    </Link>
+                    <Link to="/findFriend">
+                        <img src="/img/inrupt2.svg" alt="findFriend" />
                     </Link>
                 </div>
 

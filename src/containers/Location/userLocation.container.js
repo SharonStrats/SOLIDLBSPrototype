@@ -25,7 +25,7 @@ import LocationContent from './userLocation.component';
  * for more information please go to: https://github.com/solid/query-ldflex
  */
 
-const RestaurantSearch = ({ toastManager }) => {
+const LoadLocation = ({ toastManager }) => {
     const webId = useWebId();
     const { t, i18n } = useTranslation();
 
@@ -59,4 +59,4 @@ const RestaurantSearch = ({ toastManager }) => {
     );
 };
 
-export default withToastManager(UserLocation);
+export default withToastManager(LoadLocation);

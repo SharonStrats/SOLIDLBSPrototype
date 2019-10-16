@@ -1,100 +1,32 @@
 import React, { Fragment } from 'react';
-import RestaurantSearchContent from './restaurantSearch.component';
-//import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { withToastManager } from 'react-toast-notifications';
 import { useWebId } from '@inrupt/solid-react-components';
 import {
     Header,
     RestaurantSearchContainer,
     RestaurantSearchWrapper
-} from './restaurantSearch.style';
-//import data from '@solid/query-ldflex';
-//import { namedNode } from '@rdfjs/data-model';
+} from './findMyFriend.style';
 import { fetchDocument, createDocument } from 'tripledoc';
 import { solid, foaf, schema, space, rdf, rdfs } from 'rdf-namespaces';
+import RestaurantSearchContent from './findMyFriend.component';
 
 
 var location = {};
 
-//Got the getCurrentPosition async/await from 
-//https://blog.larapulse.com/es-2015/synchronous-fetch-browser-geolocation
-function getCurrentPosition(options = {}) {
-    return new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, options);
-    });
-}
-
-const fetchCoordinates = async () => {
-    try {
-        const { coords } = await getCurrentPosition();
-        const { latitude, longitude } = coords;
-        return {latitude: latitude, longitude: longitude};
-        // Handle coordinates
-    } catch (error) {
-        // Handle error
-        console.error(error);
-    }
-};
-async function addLocation(locationDoc) {
-
-    location = await fetchCoordinates();
-    
-    const newLocation = await locationDoc.addSubject();
-
-        newLocation.addNodeRef(rdf.type, schema.GeoCoordinates);
-        newLocation.addLiteral(schema.latitude, location.latitude);
-        newLocation.addLiteral(schema.longitude, location.longitude);
-        //location.latitude = location.latitude.toFixed(truncate);
-       //location.latitude = location.longitude.toFixed(truncate);
-        //truncate -= 3
-        const success = await locationDoc.save([newLocation]);
-
-    //}
-    return success;
-}
-async function createLocationDetailDoc(profile) {
-
-    var location = await fetchCoordinates();
-    const publicTypeIndexUrl = profile.getNodeRef(solid.publicTypeIndex);
-    const publicTypeIndex = await fetchDocument(publicTypeIndexUrl); 
-    const storage = profile.getNodeRef(space.storage);
-
-    const locationDetailDocUrl = storage + 'public/detaillocation.ttl';   
-    const locationDetailDoc = createDocument(locationDetailDocUrl);
-
-    await locationDetailDoc.save();
-
-    const typeRegistration = publicTypeIndex.addSubject();
-    typeRegistration.addNodeRef(rdf.type, solid.TypeRegistration)
-    typeRegistration.addNodeRef(solid.instance, locationDetailDoc.asNodeRef())
-    typeRegistration.addNodeRef(solid.forClass, schema.GeoCoordinates)
-    await publicTypeIndex.save([ typeRegistration]);
-
-  
-    const newLocation = await locationDetailDoc.addSubject();
-
-    newLocation.addNodeRef(rdf.type, schema.GeoCoordinates);
-    newLocation.addLiteral(schema.latitude, location.latitude);
-    newLocation.addLiteral(schema.longitude, location.longitude);
-    const success = await locationDetailDoc.save([newLocation]);
 
 
-    return success;
-}
-
-async function createLocationApproxDoc(profile) {
-
-    var location = await fetchCoordinates();
+//Need to look into how to do this for friends..
+async function createFriendDoc(profile) {
 
     const publicTypeIndexUrl = profile.getNodeRef(solid.publicTypeIndex);
     const publicTypeIndex = await fetchDocument(publicTypeIndexUrl); 
     const storage = profile.getNodeRef(space.storage);
 
-    const locationApproxDocUrl = storage + 'public/approxlocation.ttl';   
-    const locationApproxDoc = createDocument(locationApproxDocUrl);
+    //const locationApproxDocUrl = storage + 'public/approxlocation.ttl';   
+    //const locationApproxDoc = createDocument(locationApproxDocUrl);
 
-    await locationApproxDoc.save();
-
+    //await locationApproxDoc.save();
+/*
     const typeRegistration = publicTypeIndex.addSubject();
     typeRegistration.addNodeRef(rdf.type, solid.TypeRegistration)
     typeRegistration.addNodeRef(solid.instance, locationApproxDoc.asNodeRef())
@@ -108,54 +40,29 @@ async function createLocationApproxDoc(profile) {
     newLocation.addLiteral(schema.longitude, location.longitude.toFixed(5));
     const success = await locationApproxDoc.save([newLocation]);
 
-
+*/
+    var success = "";
     return success;
 }
-async function createLocationGeneralDoc(profile) {
 
-    var location = await fetchCoordinates();
-    
-    const publicTypeIndexUrl = profile.getNodeRef(solid.publicTypeIndex);
-    const publicTypeIndex = await fetchDocument(publicTypeIndexUrl); 
-    const storage = profile.getNodeRef(space.storage);
-
-    const locationGeneralDocUrl = storage + 'public/genlocation.ttl';   
-    const locationGeneralDoc = createDocument(locationGeneralDocUrl);
-
-    await locationGeneralDoc.save();
-
-    const typeRegistration = publicTypeIndex.addSubject();
-    typeRegistration.addNodeRef(rdf.type, solid.TypeRegistration)
-    typeRegistration.addNodeRef(solid.instance, locationGeneralDoc.asNodeRef())
-    typeRegistration.addNodeRef(solid.forClass, schema.GeoCoordinates)
-    await publicTypeIndex.save([ typeRegistration]);
-
-    const newLocation = await locationGeneralDoc.addSubject();
-
-    newLocation.addNodeRef(rdf.type, schema.GeoCoordinates);
-    newLocation.addLiteral(schema.latitude, location.latitude.toFixed(3));
-    newLocation.addLiteral(schema.longitude, location.longitude.toFixed(3));
-    const success = await locationGeneralDoc.save([newLocation]);
+async function getFriendsDoc(profile) {
 
 
-    return success;
 }
-//Code below taken and modified from https://vincenttunru.gitlab.io/tripledoc/docs/writing-a-solid-app
+
+//Not quite sure if I need this for friends yets
 async function initialiseLocationList(profile, typeIndex) {
     console.log("in initialize");
     const storage = profile.getNodeRef(space.storage);
 
     const locationDetailDocUrl = storage + 'public/detaillocation.ttl';
-    const locationApproxDocUrl = storage + 'public/approxlocation.ttl';
-    const locationGeneralDocUrl = storage + 'public/generallocation.ttl';
+
 
     //Create the new document
     const locationDetailDoc = createDocument(locationDetailDocUrl);
-    const locationApproxDoc = createDocument(locationApproxDocUrl);
-    const locationGeneralDoc = createDocument(locationGeneralDocUrl);
+
     await locationDetailDoc.save();
-    await locationApproxDoc.save();
-    await locationGeneralDoc.save();
+
 
     //Store a reference to that document in the public Type Index;
     const typeRegistration = typeIndex.addSubject();
@@ -164,19 +71,11 @@ async function initialiseLocationList(profile, typeIndex) {
     typeRegistration.addNodeRef(solid.forClass, schema.GeoCoordinates)
     await typeIndex.save([ typeRegistration]);
 
-    typeRegistration.addNodeRef(rdf.type, solid.TypeRegistration)
-    typeRegistration.addNodeRef(solid.instance, locationApproxDoc.asNodeRef())
-    typeRegistration.addNodeRef(solid.forClass, schema.GeoCoordinates)
-    await typeIndex.save([ typeRegistration]);
 
-    typeRegistration.addNodeRef(rdf.type, solid.TypeRegistration)
-    typeRegistration.addNodeRef(solid.instance, locationGeneralDoc.asNodeRef())
-    typeRegistration.addNodeRef(solid.forClass, schema.GeoCoordinates)
-    await typeIndex.save([ typeRegistration]);
-
-    return [ locationDetailDoc, locationApproxDoc, locationGeneralDoc ];
+    return null;
 }
 
+//Will need to change this up a bit to get someone else's location...  
 async function getLocationDoc(profile) {
     //First attempt will be making it public, but really
     //want to make it private
@@ -249,13 +148,14 @@ const getData = async webId => {
     //var detailDoc = await createLocationDetailDoc(user);
     //var approxDoc = await createLocationApproxDoc(user);
     //var generalDoc = await createLocationGeneralDoc(user);
-    var locationDoc = await getLocationDoc(user);
-    console.log("getData LocationDoc " + JSON.stringify(locationDoc));
+    var friendDoc = await getFriendsDoc(user);
+    console.log("getData FriendDoc " + JSON.stringify(friendDoc));
      //should change the name to document
     //What about getSafeLiteral instead of getLiteral  need node-solid-server
     //could use 
 // two variables permission and actual location information...
 
+/*
     const location = await locationDoc.getSubject();
     console.log("get data location " + JSON.stringify(location));
     console.log(location.getNodeRef(rdf.type, schema.GeoCoordinates)); //returning null
@@ -268,8 +168,8 @@ const getData = async webId => {
         var status = await addLocation(locationDoc);  
       
         console.log(status);      
-    } 
-    return { name: {name} };
+    } */
+    return null;
 } 
 
 /**
@@ -279,7 +179,7 @@ const getData = async webId => {
  * this means the result will have a better format to read on Javascript.
  * for more information please go to: https://github.com/solid/query-ldflex
  */
- const RestaurantSearch = ({ ToastManager }) => {
+ const FindMyFriendSearch = ({ ToastManager }) => {
     const webId = useWebId();
     console.log("Web ID: " + webId);
     //Not sure why they are using CUPurl instead of continuing to 
@@ -312,7 +212,7 @@ const getData = async webId => {
                             name={data.name}
                             image={coolImage}
                             isLoading={isLoading}
-                        />
+                        /> 
                         </Fragment>
 
                     )}
@@ -322,4 +222,4 @@ const getData = async webId => {
     
 };
 
-export default withToastManager(RestaurantSearch);
+export default withToastManager(FindMyFriendSearch);
