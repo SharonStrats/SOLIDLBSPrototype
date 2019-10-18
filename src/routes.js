@@ -11,6 +11,7 @@ import {
   RegistrationSuccess,
   Profile,
   Location,
+  FindMyFriendSearch,
   RestaurantSearch
 } from "./containers";
 
@@ -29,6 +30,11 @@ const privateRoutes = [
     id: "location",
     path: "/location",
     component: Location
+  },
+    {
+    id: "FindMyFriend",
+    path: "/findMyFriend",
+    component: FindMyFriendSearch
   },
   {
     id: "restaurantSearch",
@@ -55,6 +61,7 @@ const Routes = () => (
         />
         
         <Redirect from="/" to="/restaurantSearch" exact />
+        <Redirect from="/friends" to="/findMyFriend" exact />
         
         <PrivateLayout path="/" routes={privateRoutes} />
         <Redirect to="/404" />

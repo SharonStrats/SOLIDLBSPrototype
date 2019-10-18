@@ -58,7 +58,8 @@ const NavBar = (props: Props) => {
             : [];
         setProfileOption(profile);
     };
-
+    //need to put below somewhere to credit author
+//<div>Icons made by <a href="https://www.flaticon.com/<?=_('authors/')?>freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/"         title="Flaticon">www.flaticon.com</a></div>
     return (
         <header
             role="navigation"
@@ -70,14 +71,12 @@ const NavBar = (props: Props) => {
                     <Link to="/welcome">
                         <img src="/img/inrupt.svg" alt="inrupt" />
                     </Link>
+
                     <Link to="/restaurantSearch">
-                        <img src="/img/inrupt2.svg" alt="restaurant" />
+                        <img src="/img/search.svg" alt="restaurant" />
                     </Link>
                     <Link to="/location">
                         <img src="/img/inrupt2.svg" alt="getlocation" />
-                    </Link>
-                    <Link to="/addFriend">
-                        <img src="/img/inrupt2.svg" alt="addFriend" />
                     </Link>
                     <Link to="/findFriend">
                         <img src="/img/inrupt2.svg" alt="findFriend" />

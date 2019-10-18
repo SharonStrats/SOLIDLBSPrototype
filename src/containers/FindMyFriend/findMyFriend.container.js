@@ -15,40 +15,45 @@ var location = {};
 
 
 
-//Need to look into how to do this for friends..
-async function createFriendDoc(profile) {
-
-    const publicTypeIndexUrl = profile.getNodeRef(solid.publicTypeIndex);
-    const publicTypeIndex = await fetchDocument(publicTypeIndexUrl); 
-    const storage = profile.getNodeRef(space.storage);
-
-    //const locationApproxDocUrl = storage + 'public/approxlocation.ttl';   
-    //const locationApproxDoc = createDocument(locationApproxDocUrl);
-
-    //await locationApproxDoc.save();
-/*
-    const typeRegistration = publicTypeIndex.addSubject();
-    typeRegistration.addNodeRef(rdf.type, solid.TypeRegistration)
-    typeRegistration.addNodeRef(solid.instance, locationApproxDoc.asNodeRef())
-    typeRegistration.addNodeRef(solid.forClass, schema.GeoCoordinates)
-    await publicTypeIndex.save([ typeRegistration]);
-
-    const newLocation = await locationApproxDoc.addSubject();
-
-    newLocation.addNodeRef(rdf.type, schema.GeoCoordinates);
-    newLocation.addLiteral(schema.latitude, location.latitude.toFixed(5));
-    newLocation.addLiteral(schema.longitude, location.longitude.toFixed(5));
-    const success = await locationApproxDoc.save([newLocation]);
-
-*/
-    var success = "";
-    return success;
-}
-
+//rdfs.seeAlso
 async function getFriendsDoc(profile) {
 
+    const friendsDocumentUrl = profile.getNodeRef(foaf.knows);
+    console.log("Friends URL: " + friendsDocumentUrl);
+    const friendsDocument = await fetchDocument(friendsDocumentUrl);
+    const friend = friendsDocument.getSubject(friendsDocumentUrl);
 
+    const publicTypeIndexUrl = friend.getNodeRef(solid.publicTypeIndex);
+    const publicTypeIndex = await fetchDocument(publicTypeIndexUrl);
+    const locationListEntry = publicTypeIndex.findSubjects(solid.forClass, schema.GeoCoordinates)
+    console.log("location entry: " + locationListEntry);
+    try { //Detail
+        var locationListUrl = await locationListEntry[1].getNodeRef(solid.instance);
+        console.log("GET LOCATION " + JSON.stringify(locationListUrl));
+        return await fetchDocument(locationListUrl);
+    } catch (err) {
+        console.log(err);
+        try {  //Approximate
+            locationListUrl = await locationListEntry[3].getNodeRef(solid.instance);
+            console.log("GET LOCATION " + JSON.stringify(locationListUrl));
+            return await fetchDocument(locationListUrl);
+        } catch (err) {
+            console.log(err);
+            try { //General
+                locationListUrl = await locationListEntry[5].getNodeRef(solid.instance);
+                console.log("GET LOCATION " + JSON.stringify(locationListUrl));
+                return await fetchDocument(locationListUrl);
+            } catch (err) {
+                console.log(err);
+            }
+        }
+    }
+    return null;
+    //return await friendsDocument.getSubject(foaf.Person);
 }
+
+
+
 
 //Not quite sure if I need this for friends yets
 async function initialiseLocationList(profile, typeIndex) {
@@ -123,10 +128,7 @@ async function getLocationDoc(profile) {
 }
 
 /*
-async function getFriendsDoc(profile) {
-  const friendsDocumentUrl = profile.getNodeRef(rdfs.seeAlso);
-  const friendsDocument = await fetchDocument(friendsDocumentUrl);
-  return friendsDocument.getSubjectsOfType(foaf.Person);
+
 } 
 
 const getFriends = async webId => {
@@ -143,11 +145,8 @@ const getData = async webId => {
     const user = webIdDoc.getSubject(webId);
     /* 3. Get their foaf:name: */
     var name = user.getLiteral(foaf.name);
+   
 
-    //These create the needed documents
-    //var detailDoc = await createLocationDetailDoc(user);
-    //var approxDoc = await createLocationApproxDoc(user);
-    //var generalDoc = await createLocationGeneralDoc(user);
     var friendDoc = await getFriendsDoc(user);
     console.log("getData FriendDoc " + JSON.stringify(friendDoc));
      //should change the name to document

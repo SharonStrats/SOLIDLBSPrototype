@@ -4,6 +4,8 @@ import { Dropdown } from '@util-components';
 
 import auth from 'solid-auth-client';
 
+//This is the drop down menu I was able to add 
+//2 logouts..  looking for where to welcome and profile are added
 export const ImageContainer = styled.div`
     width: 42px;
     height: 42px;
