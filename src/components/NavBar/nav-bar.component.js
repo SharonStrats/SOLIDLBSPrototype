@@ -60,6 +60,9 @@ const NavBar = (props: Props) => {
     };
     //need to put below somewhere to credit author
 //<div>Icons made by <a href="https://www.flaticon.com/<?=_('authors/')?>freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/"         title="Flaticon">www.flaticon.com</a></div>
+//<div>Icons made by <a href="https://www.flaticon.com/<?=_('authors/')?>eucalyp" title="Eucalyp">Eucalyp</a> from <a href="https://www.flaticon.com/"         title="Flaticon">www.flaticon.com</a></div>
+//friend search<div>Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/"             title="Flaticon">www.flaticon.com</a></div>
+//restaurant search <div>Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/"         title="Flaticon">www.flaticon.com</a></div>
     return (
         <header
             role="navigation"
@@ -71,16 +74,7 @@ const NavBar = (props: Props) => {
                     <Link to="/welcome">
                         <img src="/img/inrupt.svg" alt="inrupt" />
                     </Link>
-
-                    <Link to="/restaurantSearch">
-                        <img src="/img/search.svg" alt="restaurant" />
-                    </Link>
-                    <Link to="/location">
-                        <img src="/img/inrupt2.svg" alt="getlocation" />
-                    </Link>
-                    <Link to="/findFriend">
-                        <img src="/img/inrupt2.svg" alt="findFriend" />
-                    </Link>
+   
                 </div>
 
                 {isOpenMobile ? (

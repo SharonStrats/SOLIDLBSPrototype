@@ -2,7 +2,7 @@ import styled from 'styled-components';
 
 import { media } from '../../utils';
 
-export const RestaurantSearchWrapper = styled.section`
+export const FindMyFriendWrapper = styled.section`
     display: flex;
     align-items: center;
     justify-content: center;
@@ -11,7 +11,7 @@ export const RestaurantSearchWrapper = styled.section`
     min-height: 79vh;
     padding: 60px 0;
 `;
-export const RestaurantSearchContainer = styled.div`
+export const FindMyFriendContainer = styled.div`
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
     background-color: white;
     max-width: 900px;
@@ -24,6 +24,18 @@ export const RestaurantSearchContainer = styled.div`
   `}
 `;
 
+export const FindMyFriendContent = styled.div`
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+    background-color: white;
+    max-width: 900px;
+    margin: 0 20px;
+    height: 100%;
+    width: 100%;
+    overflow-y: auto;
+    ${media.tablet`
+    height: 90%;
+  `}
+`;
 export const Header = styled.div`
     display: flex;
     position: relative;
@@ -91,61 +103,6 @@ export const WebId = styled.div`
     }
 `;
 
-export const ShexForm = styled.div`
-border: solid #cacaca 1px;
-background: #f9f9f9;
-    label {
-      clear: both;
-    }
-    & .shexForm {
-        border: none;
-        background: transparent;
-        box-sizing: border-box;
-        padding: 0 12px;
-    }
-
-    & .shexPanel {
-        border: solid #cacaca 1px;
-        background: #ffffff;
-        box-sizing: border-box;
-        padding: 12px;
-        position: relative;
-    }
-
-    & .shexRoot {
-        border: none;
-        background: transparent;
-    }
-
-    & .deleteButton {
-        margin: 0 4px 0 12px;
-        position: relative;
-        float: right;
-        width: 100px;
-        color: #fb4a3e;
-        border-color: #fb4a3e;
-        &:hover {
-            background: rgba(251, 74, 62, 0.8);
-            color: #fff;
-        }
-    }
-
-    & .addButton {
-        width: 210px;
-        color: rgb(145, 194, 250);
-        border-color: rgb(145, 194, 250);
-        background: #fff;
-        padding: 5px 30px;
-        &:hover {
-            background: rgba(145, 194, 250, 0.8);
-            color: #fff;
-        }
-
-        & .inputContainer {
-            padding: 12px;
-        }
-    }
-`;
 export const WelcomeWrapper = styled.section`
   top:0;
   bottom:0;
@@ -190,16 +147,6 @@ export const WelcomeCard = styled.div`
   button {
     margin-left: 8px;
   }
-`;
-
-export const WeatherContainer = styled.div`
-  max-width:1200px;
-  display: flex;
-  position:relative;
-  flex-direction: row !important;
-  align-items: center;
-  margin: 30px auto;
-  height:60% !important;
 `;
 
 export const LocationInputContainer = styled.div`

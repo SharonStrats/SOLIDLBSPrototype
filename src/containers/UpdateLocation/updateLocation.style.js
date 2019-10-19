@@ -2,7 +2,7 @@ import styled from 'styled-components';
 
 import { media } from '../../utils';
 
-export const UserLocationWrapper = styled.section`
+export const UpdateLocationWrapper = styled.section`
     display: flex;
     align-items: center;
     justify-content: center;
@@ -11,7 +11,7 @@ export const UserLocationWrapper = styled.section`
     min-height: 79vh;
     padding: 60px 0;
 `;
-export const UserLocationContainer = styled.div`
+export const UpdateLocationContainer = styled.div`
     box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
     background-color: white;
     max-width: 900px;
@@ -91,62 +91,51 @@ export const WebId = styled.div`
     }
 `;
 
-export const ShexForm = styled.div`
-border: solid #cacaca 1px;
-background: #f9f9f9;
-    label {
-      clear: both;
+export const WelcomeWrapper = styled.section`
+  top:0;
+  bottom:0;
+  overflow-y:auto;
+  overflow-x:visible;
+  position:relative;
+  padding: 0;
+  width:100%;
+  height:100%;
+  align-items: center;
+  justify-content: center;
+  h3 {
+    color: #666666;
+    span {
+      font-weight: bold;
     }
-    & .shexForm {
-        border: none;
-        background: transparent;
-        box-sizing: border-box;
-        padding: 0 12px;
+    a {
+      font-size: 1.9rem;
     }
-
-    & .shexPanel {
-        border: solid #cacaca 1px;
-        background: #ffffff;
-        box-sizing: border-box;
-        padding: 12px;
-        position: relative;
-    }
-
-    & .shexRoot {
-        border: none;
-        background: transparent;
-    }
-
-    & .deleteButton {
-        margin: 0 4px 0 12px;
-        position: relative;
-        float: right;
-        width: 100px;
-        color: #fb4a3e;
-        border-color: #fb4a3e;
-        &:hover {
-            background: rgba(251, 74, 62, 0.8);
-            color: #fff;
-        }
-    }
-
-    & .addButton {
-        width: 210px;
-        color: rgb(145, 194, 250);
-        border-color: rgb(145, 194, 250);
-        background: #fff;
-        padding: 5px 30px;
-        &:hover {
-            background: rgba(145, 194, 250, 0.8);
-            color: #fff;
-        }
-
-        & .inputContainer {
-            padding: 12px;
-        }
-    }
+  }
 `;
 
+export const WelcomeCard = styled.div`
+  background-color: #fff;
+  
+  margin: 30px auto;
+  max-width:1200px;
+
+  //Overriding the style guide card flexbox settings
+  flex-direction: column !important;
+  padding: 0 !important; //temporary fix to a style guide bug
+
+  align-items: center;
+
+  a {
+    text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  button {
+    margin-left: 8px;
+  }
+`;
 export const AutoSaveNotification = styled.section`
   margin-bottom:0px !important;
 `;

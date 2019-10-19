@@ -5,7 +5,6 @@ import './friendList.css';
 import {
   WelcomeWrapper,
   WelcomeCard,
-  WeatherContainer,
   LocationInputContainer,
   GoButton
 } from './findMyFriend.style';
@@ -14,7 +13,7 @@ import {
 import { withToastManager } from 'react-toast-notifications';
 import zomato from '../../api/zomato';
 import { fetchDocument } from 'tripledoc';
-import { foaf, rdfs } from 'rdf-namespaces';
+import { foaf, rdfs, rdf, solid, schema } from 'rdf-namespaces';
 import auth  from 'solid-auth-client';
 
 
@@ -34,63 +33,89 @@ import auth  from 'solid-auth-client';
     return profile.getLiteral(foaf.name);
   }
 
-const RestaurantCard = (props) => {
+const FriendCard = (props) => {
 
       return (
       <div className="card">
-        <p>{props.restaurant}</p>
+        <p>{props.friend}</p>
       </div>
       );
 };
 
-const RestaurantCardList = (props) => {
-    console.log(props.restaurants);
-    const restaurants = props.restaurants.map((restaurant) => {
-      return <RestaurantCard key={restaurant.restaurant.id} restaurant={restaurant.restaurant.name} />
+const FriendCardList = (props) => {
+    console.log("Friends" + props.friends);
+    const friends = props.friends.map((friend) => {
+      return <FriendCard key={friend.id} friend={friend.name} latitude={friend.latitude} longitude={friend.longitude} />
   }); 
-      return <div className="restaurant-list">{restaurants}</div>;  
+      return <div className="friend-list">{friends}</div>;  
 };
 
-class RestaurantSearchContent extends React.Component  {
+class FindMyFriendContent extends React.Component  {
   
-  //var events = props.events;
+  
   //var sd = props.selectedDate;
 
-  state = {restaurants: []};
+  state = {friends: []};
 
   componentDidMount() {
-    this.getRestaurants();
+
+    this.getFriends(this.props.webId);
       
   }
 
+ getFriends = async(webId) => {
+    var locationDoc = "";
+    const webIdDoc = await fetchDocument(webId);
 
-
- /* async function getFriends(profile) {
-    const friendsDocumentUrl = profile.getNodeRef(rdfs.seeAlso);
+    const profile = webIdDoc.getSubject(webId);
+    const friendsDocumentUrl = profile.getNodeRef(foaf.knows);
+    console.log("Friends URL: " + friendsDocumentUrl);
     const friendsDocument = await fetchDocument(friendsDocumentUrl);
-    return friendsDocument.getSubjectsOfType(foaf.Person);
-  } */
+    const friend = friendsDocument.getSubject(friendsDocumentUrl);
+    var friendName = friend.getLiteral(foaf.name);
 
-//Need to get the location from the solid server and convert to the entity_id 
-   async getLocation() {
-    var testProfile = await getWebId();
-    //var name = getName(testProfile); 
-    console.log(testProfile);
-    //console.log("Name: " + name);
-
-    return 'entity_id=94741%20&entity_type=zone';
-
-   }
-
-   getRestaurants = async (term) => {
-        var location = this.getLocation();
-        const response = await zomato.get('/search', { 
-            params: { query: location }        
-        });
-       
-        this.setState({ restaurants: response.data.restaurants });
-        
+    const publicTypeIndexUrl = friend.getNodeRef(solid.publicTypeIndex);
+    const publicTypeIndex = await fetchDocument(publicTypeIndexUrl);
+    const locationListEntry = publicTypeIndex.findSubjects(solid.forClass, schema.GeoCoordinates)
+    console.log("location entry: " + locationListEntry);
+    try { //Detail
+        var locationListUrl = await locationListEntry[1].getNodeRef(solid.instance);
+        console.log("GET LOCATION " + JSON.stringify(locationListUrl));
+        locationDoc = await fetchDocument(locationListUrl);
+    } catch (err) {
+        console.log(err);
+        try {  //Approximate
+            locationListUrl = await locationListEntry[3].getNodeRef(solid.instance);
+            console.log("GET LOCATION " + JSON.stringify(locationListUrl));
+            locationDoc = await fetchDocument(locationListUrl);
+        } catch (err) {
+            console.log(err);
+            try { //General
+                locationListUrl = await locationListEntry[5].getNodeRef(solid.instance);
+                console.log("GET LOCATION " + JSON.stringify(locationListUrl));
+                locationDoc = await fetchDocument(locationListUrl);
+            } catch (err) {
+                console.log(err);
+            }
+        }
     }
+
+    const location = await locationDoc.getSubject();
+    console.log("get data location " + JSON.stringify(location));
+    console.log(location.getNodeRef(rdf.type, schema.GeoCoordinates)); //returning null
+    var latitude = location.getLiteral(schema.latitude); //returning null
+    var longitude = location.getLiteral(schema.longitude); //returning null
+    
+    console.log(latitude);
+    console.log(longitude);
+
+    this.setState({friends: [ {id: "1", name: friendName, latitude: latitude, longitude: longitude} ]});
+    
+
+    return null;
+    //return await friendsDocument.getSubject(foaf.Person);
+}
+
   render() { 
     
   
@@ -106,20 +131,18 @@ class RestaurantSearchContent extends React.Component  {
           <span id='inputErrorMessage' />
         </LocationInputContainer>
         <p>
-          Now showing you restaurants nearby <span>{this.props.city}, {this.props.state}</span>
+          My friends: 
         </p>
-      <RestaurantCardList restaurants={this.state.restaurants}/>
+      <FriendCardList friends={this.state.friends}/>
       </WelcomeCard>
-      <WeatherContainer>
 
-      </WeatherContainer>
     </WelcomeWrapper>
   );
   }
 };
 
 
-export { RestaurantSearchContent };
+export { FindMyFriendContent };
 export default withTranslation()(
-  isLoading(withToastManager(RestaurantSearchContent))
+  isLoading(withToastManager(FindMyFriendContent))
 );

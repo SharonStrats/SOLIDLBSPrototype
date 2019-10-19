@@ -1,4 +1,4 @@
-.restaurant-list {
+.friend-list {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(250px, 2fr));
 	grid-gap: 0 10px;
@@ -6,7 +6,7 @@
 }
 
 
-.restaurant-list img {
+.friend-list img {
 	width: 250px;
 
 }

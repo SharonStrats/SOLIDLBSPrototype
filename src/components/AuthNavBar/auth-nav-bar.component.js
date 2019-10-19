@@ -18,6 +18,25 @@ const AuthNavBar = props => {
       icon: "img/people.svg",
       label: t("navBar.profile"),
       to: "/profile"
+    },
+    ,
+    {
+      id: "findmyfriend",
+      icon: "img/friend-search.svg",
+      label: t("navBar.findmyfriend"),
+      to: "/findMyFriend"
+    },
+    {
+      id: "location",
+      icon: "img/maps-and-location.svg",
+      label: t("navBar.updateLocation"),
+      to: "/updateLocation"
+    },
+    {
+      id: "restaurant",
+      icon: "img/restaurant-search.svg",
+      label: t("navBar.restaurant-search"),
+      to: "/restaurantSearch"
     }
   ];
   return (
