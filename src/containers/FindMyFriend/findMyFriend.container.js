@@ -18,7 +18,7 @@ var location = {};
 
 async function getFriendsDoc(profile) {
 
-    const friendsDocumentUrl = profile.getNodeRef(foaf.knows);
+    const friendsDocumentUrl = profile.getAllNodeRefs(foaf.knows);
     console.log("Friends URL: " + friendsDocumentUrl);
     const friendsDocument = await fetchDocument(friendsDocumentUrl);
     const friend = friendsDocument.getSubject(friendsDocumentUrl);
@@ -28,19 +28,19 @@ async function getFriendsDoc(profile) {
     const locationListEntry = publicTypeIndex.findSubjects(solid.forClass, schema.GeoCoordinates)
     console.log("location entry: " + locationListEntry);
     try { //Detail
-        var locationListUrl = await locationListEntry[1].getNodeRef(solid.instance);
+        var locationListUrl = await locationListEntry[0].getNodeRef(solid.instance);
         console.log("GET LOCATION " + JSON.stringify(locationListUrl));
         return await fetchDocument(locationListUrl);
     } catch (err) {
         console.log(err);
         try {  //Approximate
-            locationListUrl = await locationListEntry[3].getNodeRef(solid.instance);
+            locationListUrl = await locationListEntry[1].getNodeRef(solid.instance);
             console.log("GET LOCATION " + JSON.stringify(locationListUrl));
             return await fetchDocument(locationListUrl);
         } catch (err) {
             console.log(err);
             try { //General
-                locationListUrl = await locationListEntry[5].getNodeRef(solid.instance);
+                locationListUrl = await locationListEntry[2].getNodeRef(solid.instance);
                 console.log("GET LOCATION " + JSON.stringify(locationListUrl));
                 return await fetchDocument(locationListUrl);
             } catch (err) {
@@ -64,7 +64,7 @@ const getData = async webId => {
     var name = user.getLiteral(foaf.name);
    
 
-    var getFriendList = await getFriendsDoc(user);
+   // var getFriendList = await getFriendsDoc(user);
 
 /*
     const location = await locationDoc.getSubject();

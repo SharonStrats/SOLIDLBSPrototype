@@ -11,7 +11,7 @@ import {
 //import { RestaurantCard  } from './components';
 //import { Container } from 'react-bootstrap';
 import { withToastManager } from 'react-toast-notifications';
-import zomato from '../../api/zomato';
+import openstreetmap from '../../api/openstreetmap';
 import { fetchDocument } from 'tripledoc';
 import { foaf, rdfs, rdf, solid, schema } from 'rdf-namespaces';
 import auth  from 'solid-auth-client';
@@ -58,58 +58,83 @@ class FindMyFriendContent extends React.Component  {
   state = {friends: []};
 
   componentDidMount() {
-
+    console.log(this.props.webId);
     this.getFriends(this.props.webId);
       
   }
 
+
+  getPlace = async (latitude, longitude) => {
+
+    const response = await openstreetmap.get('/reverse', { 
+            params: { format: "geocodejson", lat: latitude, lon: longitude}        
+        }); 
+
+    return response.data.features[0].properties.geocoding.label;
+ 
+  }
  getFriends = async(webId) => {
     var locationDoc = "";
     const webIdDoc = await fetchDocument(webId);
 
     const profile = webIdDoc.getSubject(webId);
-    const friendsDocumentUrl = profile.getNodeRef(foaf.knows);
-    console.log("Friends URL: " + friendsDocumentUrl);
-    const friendsDocument = await fetchDocument(friendsDocumentUrl);
-    const friend = friendsDocument.getSubject(friendsDocumentUrl);
-    var friendName = friend.getLiteral(foaf.name);
+    const friendsDocumentUrls = profile.getAllNodeRefs(foaf.knows);
 
-    const publicTypeIndexUrl = friend.getNodeRef(solid.publicTypeIndex);
-    const publicTypeIndex = await fetchDocument(publicTypeIndexUrl);
-    const locationListEntry = publicTypeIndex.findSubjects(solid.forClass, schema.GeoCoordinates)
-    console.log("location entry: " + locationListEntry);
-    try { //Detail
-        var locationListUrl = await locationListEntry[1].getNodeRef(solid.instance);
-        console.log("GET LOCATION " + JSON.stringify(locationListUrl));
-        locationDoc = await fetchDocument(locationListUrl);
-    } catch (err) {
-        console.log(err);
-        try {  //Approximate
-            locationListUrl = await locationListEntry[3].getNodeRef(solid.instance);
+
+    for (var i = 1; i < friendsDocumentUrls.length; i++) { 
+
+      try { 
+        const friendsDocument = await fetchDocument(friendsDocumentUrls[1]);
+        console.log("friend document " + JSON.stringify(friendsDocument));
+        const friend = friendsDocument.getSubject(friendsDocumentUrls[1]);
+
+
+        var friendName = friend.getLiteral(foaf.name);
+        console.log("friend " + JSON.stringify(friend));
+        const publicTypeIndexUrl = friend.getNodeRef(solid.publicTypeIndex);
+        console.log("public type index " + publicTypeIndexUrl);
+      try { 
+        const publicTypeIndex = await fetchDocument(publicTypeIndexUrl);
+        const locationListEntry = publicTypeIndex.findSubjects(solid.forClass, schema.GeoCoordinates)
+        console.log("location entry: " + locationListEntry);
+        try { //Detail
+          var locationListUrl = await locationListEntry[0].getNodeRef(solid.instance);
+          console.log("GET LOCATION " + JSON.stringify(locationListUrl));
+          locationDoc = await fetchDocument(locationListUrl);
+        } catch (err) {
+          console.log(err);
+          try {  //Approximate
+            locationListUrl = await locationListEntry[1].getNodeRef(solid.instance);
             console.log("GET LOCATION " + JSON.stringify(locationListUrl));
             locationDoc = await fetchDocument(locationListUrl);
-        } catch (err) {
+          } catch (err) {
             console.log(err);
             try { //General
-                locationListUrl = await locationListEntry[5].getNodeRef(solid.instance);
+                locationListUrl = await locationListEntry[2].getNodeRef(solid.instance);
                 console.log("GET LOCATION " + JSON.stringify(locationListUrl));
                 locationDoc = await fetchDocument(locationListUrl);
             } catch (err) {
                 console.log(err);
             }
+          }
         }
+      } catch(err) {
+        console.log(err);
+      }
+    } catch(err) {
+      console.log(err);
     }
 
-    const location = await locationDoc.getSubject();
-    console.log("get data location " + JSON.stringify(location));
-    console.log(location.getNodeRef(rdf.type, schema.GeoCoordinates)); //returning null
-    var latitude = location.getLiteral(schema.latitude); //returning null
-    var longitude = location.getLiteral(schema.longitude); //returning null
+      const location = await locationDoc.getSubject();
+      console.log("get data location " + JSON.stringify(location));
+      console.log(location.getNodeRef(rdf.type, schema.GeoCoordinates)); //returning null
+      var latitude = location.getLiteral(schema.latitude); //returning null
+      var longitude = location.getLiteral(schema.longitude); //returning null
     
-    console.log(latitude);
-    console.log(longitude);
-
-    this.setState({friends: [ {id: "1", name: friendName, latitude: latitude, longitude: longitude} ]});
+      console.log(latitude);
+      console.log(longitude);
+    } 
+   this.setState({friends: [ {id: "1", name: friendName, latitude: latitude, longitude: longitude} ]});
     
 
     return null;

@@ -38,6 +38,19 @@ const fetchCoordinates = async () => {
     }
 };
 
+async function addLocation(profile, locationList) {
+    var location = {latitude: 37.6106654, longitude: 23.3982429};
+    const newLocation = await locationList.addSubject();
+    newLocation.addNodeRef(rdf.type, schema.GeoCoordinates);
+    newLocation.addLiteral(schema.latitude, location.latitude);
+    newLocation.addLiteral(schema.longitude, location.longitude);
+    const success = await locationList.save([newLocation]);
+    return success;
+
+}
+
+
+
 
 //Code below taken and modified from https://vincenttunru.gitlab.io/tripledoc/docs/writing-a-solid-app
 async function initialiseLocationList(profile, typeIndex) {
@@ -45,16 +58,16 @@ async function initialiseLocationList(profile, typeIndex) {
     const storage = profile.getNodeRef(space.storage);
 
     const locationDetailDocUrl = storage + 'public/detaillocation.ttl';
-    const locationApproxDocUrl = storage + 'public/approxlocation.ttl';
-    const locationGeneralDocUrl = storage + 'public/generallocation.ttl';
+    //const locationApproxDocUrl = storage + 'public/approxlocation.ttl';
+   // const locationGeneralDocUrl = storage + 'public/generallocation.ttl';
 
     //Create the new document
     const locationDetailDoc = createDocument(locationDetailDocUrl);
-    const locationApproxDoc = createDocument(locationApproxDocUrl);
-    const locationGeneralDoc = createDocument(locationGeneralDocUrl);
+    //const locationApproxDoc = createDocument(locationApproxDocUrl);
+    //const locationGeneralDoc = createDocument(locationGeneralDocUrl);
     await locationDetailDoc.save();
-    await locationApproxDoc.save();
-    await locationGeneralDoc.save();
+   // await locationApproxDoc.save();
+   // await locationGeneralDoc.save();
 
     //Store a reference to that document in the public Type Index;
     const typeRegistration = typeIndex.addSubject();
@@ -62,7 +75,7 @@ async function initialiseLocationList(profile, typeIndex) {
     typeRegistration.addNodeRef(solid.instance, locationDetailDoc.asNodeRef())
     typeRegistration.addNodeRef(solid.forClass, schema.GeoCoordinates)
     await typeIndex.save([ typeRegistration]);
-
+/*
     typeRegistration.addNodeRef(rdf.type, solid.TypeRegistration)
     typeRegistration.addNodeRef(solid.instance, locationApproxDoc.asNodeRef())
     typeRegistration.addNodeRef(solid.forClass, schema.GeoCoordinates)
@@ -72,8 +85,8 @@ async function initialiseLocationList(profile, typeIndex) {
     typeRegistration.addNodeRef(solid.instance, locationGeneralDoc.asNodeRef())
     typeRegistration.addNodeRef(solid.forClass, schema.GeoCoordinates)
     await typeIndex.save([ typeRegistration]);
-
-    return [ locationDetailDoc, locationApproxDoc, locationGeneralDoc ];
+*/
+    return  locationDetailDoc;
 }
 
 async function getLocationDoc(profile) {
@@ -87,7 +100,7 @@ async function getLocationDoc(profile) {
     */
     const publicTypeIndexUrl = profile.getNodeRef(solid.publicTypeIndex);
     const publicTypeIndex = await fetchDocument(publicTypeIndexUrl);
-    const locationListEntry = publicTypeIndex.findSubjects(solid.forClass, schema.GeoCoordinates)
+    const locationListEntry = publicTypeIndex.findSubject(solid.forClass, schema.GeoCoordinates)
     //locationListEntry should be the name of location urls
     //this really should contain all (need to look into data)
 
@@ -95,14 +108,17 @@ async function getLocationDoc(profile) {
     //otherwise I need to message "Location information is not available."
     console.log("location list entry: " + JSON.stringify(locationListEntry));
     //Because I am adding them I shouldn't need to do this....
+   
     if (locationListEntry === null) {
-       //return initialiseLocationList(profile, publicTypeIndex);
+
+       return initialiseLocationList(profile, publicTypeIndex);
     }
     //need a way to make sure for instance that this entry 1 is detail.
     try { //Detail
-        var locationListUrl = await locationListEntry[0].getNodeRef(solid.instance);
+        var locationListUrl = await locationListEntry.getNodeRef(solid.instance);
         console.log("GET LOCATION " + JSON.stringify(locationListUrl));
-        return await fetchDocument(locationListUrl);
+        var locationDoc =  await fetchDocument(locationListUrl);
+        console.log("Location Doc " + JSON.stringify(locationDoc));
     } catch (err) {
         console.log(err);
         try {  //Approximate
@@ -121,7 +137,7 @@ async function getLocationDoc(profile) {
         }
     }
 
-    return null; // use null then to check that they do not have location services available
+    return locationDoc; // use null then to check that they do not have location services available
 }
 /*
   const getWebId = async () =>  {
@@ -188,6 +204,10 @@ class UpdateLocationContent extends React.Component  {
     //var detailDoc = await createLocationDetailDoc(user);
     //var approxDoc = await createLocationApproxDoc(user);
     //var generalDoc = await createLocationGeneralDoc(user);
+
+    //wondering if the methods above caused problems with the public index
+    //trying the way i did it in the beginning because my account displays
+    //but new accounts don't
     var locationDoc = await getLocationDoc(user);
     console.log("getData LocationDoc " + JSON.stringify(locationDoc));
      //should change the name to document
@@ -203,11 +223,11 @@ class UpdateLocationContent extends React.Component  {
     
     console.log(latitude);
     console.log(longitude);
-   /* if ((latitude == null) || (longitude == null)) { 
+    if ((latitude == null) || (longitude == null)) { 
         var status = await addLocation(locationDoc);  
       
         console.log(status);      
-    }  */
+    }  
     var place = await this.getPlace(latitude, longitude);
     console.log(place);
     this.setState({ latitude: latitude, longitude: longitude, place: place });
