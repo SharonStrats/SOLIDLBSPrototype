@@ -1,12 +1,9 @@
 .friend-list {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(250px, 2fr));
+	grid-template-columns: repeat(auto-fill, minmax(300px, 3fr));
 	grid-gap: 0 10px;
-	grid-auto-rows: 30px;
+    grid-auto-rows: 60px;
 }
 
-
-.friend-list img {
-	width: 250px;
+.card {
 
 }

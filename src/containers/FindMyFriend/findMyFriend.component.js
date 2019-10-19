@@ -17,44 +17,32 @@ import { foaf, rdfs, rdf, solid, schema } from 'rdf-namespaces';
 import auth  from 'solid-auth-client';
 
 
-  const getWebId = async () =>  {
-    let session = await auth.currentSession();
-    if (session) { 
-      console.log(session);
-      return session.webId;
-    }
-
-    //const identityProvider = await getIdentifyProvider();
-
-    //auth.login(identityProvider);
-  }
-
   function getName(profile) {
     return profile.getLiteral(foaf.name);
   }
 
 const FriendCard = (props) => {
-
       return (
       <div className="card">
-        <p>{props.friend}</p>
+        <h4>{props.friend}</h4>
+        <h5>{props.location}</h5>
+        <h6>Lat: {props.latitude} Lon: {props.longitude}</h6>
       </div>
       );
 };
 
 const FriendCardList = (props) => {
-    console.log("Friends" + props.friends);
+  if (!props.friends) {
+    return <div>Loading... </div>
+  }
     const friends = props.friends.map((friend) => {
-      return <FriendCard key={friend.id} friend={friend.name} latitude={friend.latitude} longitude={friend.longitude} />
+      return <FriendCard key={friend.id} friend={friend.name} latitude={friend.latitude} longitude={friend.longitude} location={friend.location}  />
   }); 
       return <div className="friend-list">{friends}</div>;  
 };
 
 class FindMyFriendContent extends React.Component  {
   
-  
-  //var sd = props.selectedDate;
-
   state = {friends: []};
 
   componentDidMount() {
@@ -73,7 +61,46 @@ class FindMyFriendContent extends React.Component  {
     return response.data.features[0].properties.geocoding.label;
  
   }
+
+ getFriendLocationDoc = async(friend) => {
+      try { 
+       
+        const publicTypeIndexUrl = friend.getNodeRef(solid.publicTypeIndex);
+        
+        try { 
+          const publicTypeIndex = await fetchDocument(publicTypeIndexUrl);
+          const locationListEntry = publicTypeIndex.findSubjects(solid.forClass, schema.GeoCoordinates)
+          
+          try { //Detail
+            var locationListUrl = await locationListEntry[0].getNodeRef(solid.instance);
+            return await fetchDocument(locationListUrl);
+          } catch (err) {
+            console.log(err);
+            try {  //Approximate
+              locationListUrl = await locationListEntry[1].getNodeRef(solid.instance);
+              return await fetchDocument(locationListUrl);
+            } catch (err) {
+              console.log(err);
+              try { //General
+                locationListUrl = await locationListEntry[2].getNodeRef(solid.instance);
+                return await fetchDocument(locationListUrl);
+              } catch (err) {
+                console.log(err);
+              }
+            }
+          }
+        } catch(err) {
+        console.log(err);
+      }
+    } catch(err) {
+      console.log(err);
+    }
+
+    return null;
+ }
+
  getFriends = async(webId) => {
+ 
     var locationDoc = "";
     const webIdDoc = await fetchDocument(webId);
 
@@ -81,87 +108,60 @@ class FindMyFriendContent extends React.Component  {
     const friendsDocumentUrls = profile.getAllNodeRefs(foaf.knows);
 
 
-    for (var i = 1; i < friendsDocumentUrls.length; i++) { 
-
-      try { 
-        const friendsDocument = await fetchDocument(friendsDocumentUrls[1]);
+    for (var i = 0; i < friendsDocumentUrls.length; i++) { 
+    
+       const friendsDocument = await fetchDocument(friendsDocumentUrls[i]);
         console.log("friend document " + JSON.stringify(friendsDocument));
-        const friend = friendsDocument.getSubject(friendsDocumentUrls[1]);
+        const friend = friendsDocument.getSubject(friendsDocumentUrls[i]);
 
 
         var friendName = friend.getLiteral(foaf.name);
-        console.log("friend " + JSON.stringify(friend));
-        const publicTypeIndexUrl = friend.getNodeRef(solid.publicTypeIndex);
-        console.log("public type index " + publicTypeIndexUrl);
+   
       try { 
-        const publicTypeIndex = await fetchDocument(publicTypeIndexUrl);
-        const locationListEntry = publicTypeIndex.findSubjects(solid.forClass, schema.GeoCoordinates)
-        console.log("location entry: " + locationListEntry);
-        try { //Detail
-          var locationListUrl = await locationListEntry[0].getNodeRef(solid.instance);
-          console.log("GET LOCATION " + JSON.stringify(locationListUrl));
-          locationDoc = await fetchDocument(locationListUrl);
+        locationDoc = await this.getFriendLocationDoc(friend);
+        try { 
+          const location = await locationDoc.getSubject();
+          console.log("get data location " + JSON.stringify(location));
+          console.log(location.getNodeRef(rdf.type, schema.GeoCoordinates)); //returning null
+          var latitude = location.getLiteral(schema.latitude); //returning null
+          var longitude = location.getLiteral(schema.longitude); //returning null
+          var place = await this.getPlace(latitude, longitude);
+          console.log(latitude);
+          console.log(longitude);
+          var friendToAdd = {id:i , name: friendName, latitude: latitude, longitude: longitude, location:place};
+        
+          var friends = [...friends, friendToAdd];
         } catch (err) {
           console.log(err);
-          try {  //Approximate
-            locationListUrl = await locationListEntry[1].getNodeRef(solid.instance);
-            console.log("GET LOCATION " + JSON.stringify(locationListUrl));
-            locationDoc = await fetchDocument(locationListUrl);
-          } catch (err) {
-            console.log(err);
-            try { //General
-                locationListUrl = await locationListEntry[2].getNodeRef(solid.instance);
-                console.log("GET LOCATION " + JSON.stringify(locationListUrl));
-                locationDoc = await fetchDocument(locationListUrl);
-            } catch (err) {
-                console.log(err);
-            }
-          }
         }
-      } catch(err) {
-        console.log(err);
-      }
-    } catch(err) {
-      console.log(err);
-    }
-
-      const location = await locationDoc.getSubject();
-      console.log("get data location " + JSON.stringify(location));
-      console.log(location.getNodeRef(rdf.type, schema.GeoCoordinates)); //returning null
-      var latitude = location.getLiteral(schema.latitude); //returning null
-      var longitude = location.getLiteral(schema.longitude); //returning null
-    
-      console.log(latitude);
-      console.log(longitude);
-    } 
-   this.setState({friends: [ {id: "1", name: friendName, latitude: latitude, longitude: longitude} ]});
+      } catch (err) {
+         console.log(err);
+      } 
+  }
+   if (typeof friends !== 'undefined' && friends.length < 0) { 
+    friends.shift(); //need to take out null, look into not having it there in the first place
+   }
+   this.setState({friends: friends});
     
 
     return null;
-    //return await friendsDocument.getSubject(foaf.Person);
 }
 
   render() { 
     
   
-  return (
-    // props.isLoading ? <WelcomeWrapper data-testid="welcome-wrapper"><LoadingScreen /> </WelcomeWrapper> :
-    <WelcomeWrapper data-testid="welcome-wrapper">
-      <WelcomeCard className="card">
-        <h3>
-          Welcome <span>{this.props.name}</span>
-        </h3>
-        <LocationInputContainer>
-          <p>Show me restaurants in <input id='locationInput' placeholder="city state" /><GoButton onClick={() => console.log("hello")}>Go!</GoButton></p>
-          <span id='inputErrorMessage' />
-        </LocationInputContainer>
-        <p>
-          My friends: 
-        </p>
-      <FriendCardList friends={this.state.friends}/>
-      </WelcomeCard>
-
-    </WelcomeWrapper>
+    return (
+      <WelcomeWrapper data-testid="welcome-wrapper">
+        <WelcomeCard className="card">
+          <h3>
+            Welcome <span>{this.props.name}</span>
+          </h3>
+          <p>
+            Friends: 
+          </p>
+          <FriendCardList friends={this.state.friends}/>
+        </WelcomeCard>
+      </WelcomeWrapper>
   );
   }
 };
