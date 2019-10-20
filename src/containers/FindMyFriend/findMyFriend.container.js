@@ -11,47 +11,6 @@ import { solid, foaf, schema, space, rdf, rdfs } from 'rdf-namespaces';
 import FindMyFriendContent from './findMyFriend.component';
 
 
-var location = {};
-
-
-
-
-async function getFriendsDoc(profile) {
-
-    const friendsDocumentUrl = profile.getAllNodeRefs(foaf.knows);
-    console.log("Friends URL: " + friendsDocumentUrl);
-    const friendsDocument = await fetchDocument(friendsDocumentUrl);
-    const friend = friendsDocument.getSubject(friendsDocumentUrl);
-
-    const publicTypeIndexUrl = friend.getNodeRef(solid.publicTypeIndex);
-    const publicTypeIndex = await fetchDocument(publicTypeIndexUrl);
-    const locationListEntry = publicTypeIndex.findSubjects(solid.forClass, schema.GeoCoordinates)
-    console.log("location entry: " + locationListEntry);
-    try { //Detail
-        var locationListUrl = await locationListEntry[0].getNodeRef(solid.instance);
-        console.log("GET LOCATION " + JSON.stringify(locationListUrl));
-        return await fetchDocument(locationListUrl);
-    } catch (err) {
-        console.log(err);
-        try {  //Approximate
-            locationListUrl = await locationListEntry[1].getNodeRef(solid.instance);
-            console.log("GET LOCATION " + JSON.stringify(locationListUrl));
-            return await fetchDocument(locationListUrl);
-        } catch (err) {
-            console.log(err);
-            try { //General
-                locationListUrl = await locationListEntry[2].getNodeRef(solid.instance);
-                console.log("GET LOCATION " + JSON.stringify(locationListUrl));
-                return await fetchDocument(locationListUrl);
-            } catch (err) {
-                console.log(err);
-            }
-        }
-    }
-    return null;
-    //return await friendsDocument.getSubject(foaf.Person);
-}
-
 const getData = async webId => {
     // loading new events
     var latitude = "";
@@ -63,20 +22,7 @@ const getData = async webId => {
     /* 3. Get their foaf:name: */
     var name = user.getLiteral(foaf.name);
    
-
-   // var getFriendList = await getFriendsDoc(user);
-
-/*
-    const location = await locationDoc.getSubject();
-    console.log("get data location " + JSON.stringify(location));
-    console.log(location.getNodeRef(rdf.type, schema.GeoCoordinates)); //returning null
-    latitude = location.getLiteral(schema.latitude); //returning null
-    longitude = location.getLiteral(schema.longitude); //returning null
-    
-    console.log(latitude);
-    console.log(longitude);
- */
-    return null;
+   return null;
 } 
 
  const FindMyFriendSearch = ({ ToastManager }) => {

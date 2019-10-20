@@ -136,20 +136,16 @@ async function createLocationGeneralDoc(profile, location) {
 //Code below taken and modified from https://vincenttunru.gitlab.io/tripledoc/docs/writing-a-solid-app
 async function initialiseLocationList(profile, typeIndex) {
     console.log("in initialize");
-    var location = {latitude: 25.6945173,longitude: 100.1590505};
+    var location = {latitude: -37.7802993,longitude: 145.037028209939};
     const storage = profile.getNodeRef(space.storage);
 
     const locationDetailDocUrl = storage + 'public/detaillocation.ttl';
-    //const locationApproxDocUrl = storage + 'public/approxlocation.ttl';
-   // const locationGeneralDocUrl = storage + 'public/generallocation.ttl';
 
     //Create the new document
     const locationDetailDoc = createDocument(locationDetailDocUrl);
-    //const locationApproxDoc = createDocument(locationApproxDocUrl);
-    //const locationGeneralDoc = createDocument(locationGeneralDocUrl);
+
     await locationDetailDoc.save();
-   // await locationApproxDoc.save();
-   // await locationGeneralDoc.save();
+
 
     //Store a reference to that document in the public Type Index;
     const typeRegistration = typeIndex.addSubject();
@@ -167,7 +163,10 @@ async function initialiseLocationList(profile, typeIndex) {
 
 
     //These create the needed documents
-    //var detailDoc = await createLocationDetailDoc(user);
+    //Did detail in initialize because of a previous error I received 
+    //which really didn't make sense, later I would like to try
+    //to do this again
+    //var detailDoc = await CreateLocationDetailDoc(profile, location);
     var approxDoc = await createLocationApproxDoc(profile, location);
     var generalDoc = await createLocationGeneralDoc(profile, location);
 
@@ -188,6 +187,7 @@ async function getLocationDoc(profile) {
     const locationListEntries = publicTypeIndex.findSubjects(solid.forClass, schema.GeoCoordinates)
     console.log("Location Entries" + locationListEntries);
     //First time someone logs in
+    //This if statement is not working...
     if (locationListEntries.length < 0) {
     // the array is defined and has at least one element
        return initialiseLocationList(profile, publicTypeIndex);
@@ -226,8 +226,8 @@ const getData = async webId => {
     /* 3. Get their foaf:name: */
     var name = user.getLiteral(foaf.name);
    
-    var locationDoc = await getLocationDoc(user);
-  //  return name;
+  //  var locationDoc = await getLocationDoc(user);
+  
 } 
 
 

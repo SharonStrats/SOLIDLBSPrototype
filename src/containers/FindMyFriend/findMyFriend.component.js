@@ -64,9 +64,9 @@ class FindMyFriendContent extends React.Component  {
 
  getFriendLocationDoc = async(friend) => {
       try { 
-       
+       console.log("public type index " + friend );
         const publicTypeIndexUrl = friend.getNodeRef(solid.publicTypeIndex);
-        
+        console.log("public type index " + publicTypeIndexUrl );
         try { 
           const publicTypeIndex = await fetchDocument(publicTypeIndexUrl);
           const locationListEntry = publicTypeIndex.findSubjects(solid.forClass, schema.GeoCoordinates)
@@ -103,20 +103,18 @@ class FindMyFriendContent extends React.Component  {
  
     var locationDoc = "";
     const webIdDoc = await fetchDocument(webId);
-
     const profile = webIdDoc.getSubject(webId);
     const friendsDocumentUrls = profile.getAllNodeRefs(foaf.knows);
-
-
+  
+   //friendsDocumentUrls is a list of links of friends, their web ID
     for (var i = 0; i < friendsDocumentUrls.length; i++) { 
-    
+ 
        const friendsDocument = await fetchDocument(friendsDocumentUrls[i]);
-        console.log("friend document " + JSON.stringify(friendsDocument));
-        const friend = friendsDocument.getSubject(friendsDocumentUrls[i]);
-
+        const friend = await friendsDocument.getSubject(friendsDocumentUrls[i]);
+        
 
         var friendName = friend.getLiteral(foaf.name);
-   
+        console.log("Friend Name " + friendName);
       try { 
         locationDoc = await this.getFriendLocationDoc(friend);
         try { 
@@ -138,9 +136,10 @@ class FindMyFriendContent extends React.Component  {
          console.log(err);
       } 
   }
-   if (typeof friends !== 'undefined' && friends.length < 0) { 
+   if (typeof friends !== 'undefined' && friends.length > 0) { 
     friends.shift(); //need to take out null, look into not having it there in the first place
    }
+   console.log("Friends " + JSON.stringify(friends));
    this.setState({friends: friends});
     
 
@@ -153,12 +152,7 @@ class FindMyFriendContent extends React.Component  {
     return (
       <WelcomeWrapper data-testid="welcome-wrapper">
         <WelcomeCard className="card">
-          <h3>
-            Welcome <span>{this.props.name}</span>
-          </h3>
-          <p>
-            Friends: 
-          </p>
+          <h3>Friends</h3>
           <FriendCardList friends={this.state.friends}/>
         </WelcomeCard>
       </WelcomeWrapper>

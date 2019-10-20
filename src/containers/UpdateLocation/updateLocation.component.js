@@ -54,7 +54,9 @@ async function getLocationDoc(profile) {
     const publicTypeIndex = await fetchDocument(publicTypeIndexUrl);
     const locationListEntries = publicTypeIndex.findSubjects(solid.forClass, schema.GeoCoordinates)
     
-    if (typeof locationListEntries === 'undefined' || locationListEntries.length < 0) {
+    //this is not working not sure how to check if ocation List Entries has
+    //data
+    if (typeof locationListEntries === 'undefined' || locationListEntries.length < 0 || locationListEntries === "") {
     // the array is defined and has at least one element
        return 1;
     }
@@ -135,6 +137,7 @@ class UpdateLocationContent extends React.Component  {
     //wondering if the methods above caused problems with the public index
     //trying the way i did it in the beginning because my account displays
     //but new accounts don't
+    
     var locationDoc = await getLocationDoc(user);
     if (locationDoc === 1) {
       this.setState({ error: "Your location is unknown" });
@@ -151,7 +154,7 @@ class UpdateLocationContent extends React.Component  {
       }  
       var place = await this.getPlace(latitude, longitude);
       this.setState({ latitude: latitude, longitude: longitude, place: place });
-    }
+    }  
 } 
 
   render() { 
