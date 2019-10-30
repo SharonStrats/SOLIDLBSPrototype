@@ -57,7 +57,7 @@ class FindMyFriendContent extends React.Component  {
     const response = await openstreetmap.get('/reverse', { 
             params: { format: "geocodejson", lat: latitude, lon: longitude}        
         }); 
-
+    console.log("response " + JSON.stringify(response));
     return response.data.features[0].properties.geocoding.label;
  
   }

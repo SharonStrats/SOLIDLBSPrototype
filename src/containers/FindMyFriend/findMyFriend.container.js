@@ -6,16 +6,13 @@ import {
     FindMyFriendContainer,
     FindMyFriendWrapper
 } from './findMyFriend.style';
-import { fetchDocument, createDocument } from 'tripledoc';
-import { solid, foaf, schema, space, rdf, rdfs } from 'rdf-namespaces';
+import { foaf } from 'rdf-namespaces';
+import { fetchDocument } from 'tripledoc';
 import FindMyFriendContent from './findMyFriend.component';
 
 
 const getData = async webId => {
     // loading new events
-    var latitude = "";
-    var longitude = "";
-    var locationDocs = [];
     const webIdDoc = await fetchDocument(webId);
     /* 2. Read the Subject representing the current user: */
     const user = webIdDoc.getSubject(webId);
@@ -26,25 +23,18 @@ const getData = async webId => {
 } 
 
  const FindMyFriendSearch = ({ ToastManager }) => {
+    const isLoading = false;
     const webId = useWebId();
-    console.log("Web ID: " + webId);
-    //Not sure why they are using CUPurl instead of continuing to 
-    //use the webId
-
- 
      if (webId !== undefined) {
-        //var CUPurl = webId.replace('profile/card#me', '') + 'private/events#';
-        var CUPurl = webId;
-        var data = getData(CUPurl);
-        console.log("Data name " + data.name);
-        //getFriends(CUPurl);
+        var data = getData(webId);
+
     } else {
         //Not fetched yet.
         const isLoading = true;
     }
     
     const coolImage = '';
-    const isLoading = false;
+
         return (
             <FindMyFriendWrapper data-testid="findmyfriend-component">
                 <FindMyFriendContainer>
@@ -53,7 +43,7 @@ const getData = async webId => {
                             <Header>
                             </Header>
                         <FindMyFriendContent
-                            webId={CUPurl}
+                            webId={webId}
                             name={data.name}
                             image={coolImage}
                             isLoading={isLoading}

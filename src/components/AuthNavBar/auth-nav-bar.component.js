@@ -19,7 +19,6 @@ const AuthNavBar = props => {
       label: t("navBar.profile"),
       to: "/profile"
     },
-    ,
     {
       id: "findmyfriend",
       icon: "img/friend-search.svg",

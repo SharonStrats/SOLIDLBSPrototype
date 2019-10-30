@@ -4,17 +4,11 @@ import { withTranslation } from 'react-i18next';
 import './updateLocation.css';
 import {
   WelcomeWrapper,
-  WelcomeCard,
-  WeatherContainer,
-  LocationInputContainer,
-  GoButton
+  WelcomeCard
 } from './updateLocation.style';
-//import { RestaurantCard  } from './components';
-//import { Container } from 'react-bootstrap';
 import { withToastManager } from 'react-toast-notifications';
-import { fetchDocument, createDocument } from 'tripledoc';
-import { solid, foaf, schema, space, rdf, rdfs  } from 'rdf-namespaces';
-import auth  from 'solid-auth-client';
+import { fetchDocument } from 'tripledoc';
+import { solid, foaf, schema } from 'rdf-namespaces';
 import openstreetmap from '../../api/openstreetmap';
 
 
@@ -38,8 +32,17 @@ const fetchCoordinates = async () => {
     }
 };
 
+async function getDetailLocation() {
 
+}
 
+async function getApproxLocation() {
+
+}
+
+async function getGeneralLocation() {
+
+}
 
 async function getLocationDoc(profile) {
     //First attempt will be making it public, but really
@@ -56,15 +59,12 @@ async function getLocationDoc(profile) {
     
     //this is not working not sure how to check if ocation List Entries has
     //data
-    if (typeof locationListEntries === 'undefined' || locationListEntries.length < 0 || locationListEntries === "") {
-    // the array is defined and has at least one element
-       return 1;
-    }
-    //need a way to make sure for instance that this entry 1 is detail.
-    try { //Detail
+    if (locationListEntries.length >= 0)  {
+  
+      try { //Detail
         var locationListUrl = await locationListEntries[0].getNodeRef(solid.instance);
         var locationDoc =  await fetchDocument(locationListUrl);
-    } catch (err) {
+      } catch (err) {
         console.log(err);
         try {  //Approximate
             locationListUrl = await locationListEntries[1].getNodeRef(solid.instance);
@@ -78,15 +78,13 @@ async function getLocationDoc(profile) {
                 console.log(err);
             }
         }
+      }
+    } else {
+      return 1;
     }
 
     return locationDoc; // use null then to check that they do not have location services available
 }
-
-
-  function getName(profile) {
-    return profile.getLiteral(foaf.name);
-  }
 
 const LocationCard = (props) => {
 
@@ -113,48 +111,54 @@ class UpdateLocationContent extends React.Component  {
       
   }
 
-
    getPlace = async (latitude, longitude) => {
-
-    const response = await openstreetmap.get('/reverse', { 
+    try { 
+      const response = await openstreetmap.get('/reverse', { 
             params: { format: "geocodejson", lat: latitude, lon: longitude}        
         }); 
-
-    return response.data.features[0].properties.geocoding.label;
- 
+      console.log("Response " + JSON.stringify(response));
+      return response.data.features[0].properties.geocoding.label;
+    } catch (err) {
+      console.log(err);
     }
+  }
 
   getData = async webId => {
     var latitude = "";
     var longitude = "";
-    const webIdDoc = await fetchDocument(webId);
-    /* 2. Read the Subject representing the current user: */
-    const user = webIdDoc.getSubject(webId);
-    /* 3. Get their foaf:name: */
-    var name = user.getLiteral(foaf.name);
+    try { 
+      const webIdDoc = await fetchDocument(webId);
+      /* 2. Read the Subject representing the current user: */
+      const user = webIdDoc.getSubject(webId);
+      /* 3. Get their foaf:name: */
+      var name = user.getLiteral(foaf.name);
 
-
-    //wondering if the methods above caused problems with the public index
-    //trying the way i did it in the beginning because my account displays
-    //but new accounts don't
-    
-    var locationDoc = await getLocationDoc(user);
-    if (locationDoc === 1) {
-      this.setState({ error: "Your location is unknown" });
-    } else { 
-      console.log("location doc " + JSON.stringify(locationDoc));
-      const location = await locationDoc.getSubject();
-      latitude = location.getLiteral(schema.latitude); 
-      longitude = location.getLiteral(schema.longitude); 
-    
-      if ((latitude == null) || (longitude == null)) { 
-        //var status = await addLocation(locationDoc);  
-      
-        //console.log(status);      
+      try { 
+        var locationDoc = await getLocationDoc(user);
+ 
+        if (locationDoc === 1) {
+          this.setState({ error: "Your location is unknown" });
+        } else { 
+          try { 
+            const location = await locationDoc.getSubject();
+            latitude = location.getLiteral(schema.latitude); 
+            longitude = location.getLiteral(schema.longitude); 
+            try { 
+              var place = await this.getPlace(latitude, longitude);
+              this.setState({ latitude: latitude, longitude: longitude, place: place });
+            } catch (err) {
+              console.log(err);
+            }
+          } catch (err) {
+            console.log(err);
+          }
+        }
+      } catch (err) {
+        console.log(err);
       }  
-      var place = await this.getPlace(latitude, longitude);
-      this.setState({ latitude: latitude, longitude: longitude, place: place });
-    }  
+    } catch (err) {
+      console.log(err);
+    }
 } 
 
   render() { 

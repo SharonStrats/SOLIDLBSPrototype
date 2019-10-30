@@ -8,12 +8,10 @@ import {
     UpdateLocationContainer,
     UpdateLocationWrapper
 } from './updateLocation.style';
-//import data from '@solid/query-ldflex';
-//import { namedNode } from '@rdfjs/data-model';
 import { fetchDocument, createDocument } from 'tripledoc';
-import { solid, foaf, schema, space, rdf, rdfs } from 'rdf-namespaces';
+import { solid, foaf, schema, space, rdf } from 'rdf-namespaces';
 
-
+//NEED TO ASK PERMISSION TO ADD LOCATION....
 //Got the getCurrentPosition async/await from 
 //https://blog.larapulse.com/es-2015/synchronous-fetch-browser-geolocation
 function getCurrentPosition(options = {}) {
@@ -22,26 +20,44 @@ function getCurrentPosition(options = {}) {
     });
 }
 
+function getPermission() {  
+    navigator.permissions.query({name:'geolocation'}).then(function(result) {
+        return result.state;
+    }); 
+} 
+
 const fetchCoordinates = async () => {
-    try {
-        const { coords } = await getCurrentPosition();
-        const { latitude, longitude } = coords;
-        return {latitude: latitude, longitude: longitude};
-        // Handle coordinates
-    } catch (error) {
-        // Handle error
-        console.error(error);
+    //var permission = getPermission();
+    var permission = "granted";
+    if (permission === "granted") { 
+        try {
+            const { coords } = await getCurrentPosition();
+            const { latitude, longitude } = coords;
+            return {latitude: latitude, longitude: longitude};
+            // Handle coordinates
+        } catch (error) {
+            // Handle error
+            console.error(error);
+        }
     }
+
 };
 
-async function addLocation(profile, location, locationList) {
-
-    const newLocation = await locationList.addSubject();
-    newLocation.addNodeRef(rdf.type, schema.GeoCoordinates);
-    newLocation.addLiteral(schema.latitude, location.latitude);
-    newLocation.addLiteral(schema.longitude, location.longitude);
-    const success = await locationList.save([newLocation]);
-    return success;
+async function addLocation(location, locationList) {
+    try { 
+        const newLocation = await locationList.addSubject();
+    
+        newLocation.addNodeRef(rdf.type, schema.GeoCoordinates);
+        newLocation.addLiteral(schema.latitude, location.latitude);
+        newLocation.addLiteral(schema.longitude, location.longitude);
+        try { 
+            return await locationList.save([newLocation]);
+        } catch (err) {
+            console.log(err);
+        }
+    } catch (err) {
+        console.log(err);
+    }
 
 }
 
@@ -49,189 +65,274 @@ async function addLocation(profile, location, locationList) {
 async function createLocationDetailDoc(profile,location) {
 
     const publicTypeIndexUrl = profile.getNodeRef(solid.publicTypeIndex);
-    const publicTypeIndex = await fetchDocument(publicTypeIndexUrl); 
-    const storage = profile.getNodeRef(space.storage);
+    try { 
+        const publicTypeIndex = await fetchDocument(publicTypeIndexUrl); 
+        const storage = profile.getNodeRef(space.storage);
 
-    const locationDetailDocUrl = storage + 'public/detaillocation.ttl';   
-    const locationDetailDoc = createDocument(locationDetailDocUrl);
+        const locationDetailDocUrl = storage + 'public/detaillocation.ttl';   
+        const locationDetailDoc = createDocument(locationDetailDocUrl);
+        try { 
+            await locationDetailDoc.save();
 
-    await locationDetailDoc.save();
+            const typeRegistration = publicTypeIndex.addSubject();
+            typeRegistration.addNodeRef(rdf.type, solid.TypeRegistration)
+            typeRegistration.addNodeRef(solid.instance, locationDetailDoc.asNodeRef())
+            typeRegistration.addNodeRef(solid.forClass, schema.GeoCoordinates)
+            try { 
+                await publicTypeIndex.save([ typeRegistration]);
 
-    const typeRegistration = publicTypeIndex.addSubject();
-    typeRegistration.addNodeRef(rdf.type, solid.TypeRegistration)
-    typeRegistration.addNodeRef(solid.instance, locationDetailDoc.asNodeRef())
-    typeRegistration.addNodeRef(solid.forClass, schema.GeoCoordinates)
-    await publicTypeIndex.save([ typeRegistration]);
+                try { 
+                    const newLocation = await locationDetailDoc.addSubject();
 
-  
-    const newLocation = await locationDetailDoc.addSubject();
+                    newLocation.addNodeRef(rdf.type, schema.GeoCoordinates);
+                    newLocation.addLiteral(schema.latitude, location.latitude);
+                    newLocation.addLiteral(schema.longitude, location.longitude);
+                    try { 
+                        return await locationDetailDoc.save([newLocation]);
+                    } catch (err) {
+                        console.log(err);
+                    }
+                } catch (err) {
+                    console.log(err);
+                }
 
-    newLocation.addNodeRef(rdf.type, schema.GeoCoordinates);
-    newLocation.addLiteral(schema.latitude, location.latitude);
-    newLocation.addLiteral(schema.longitude, location.longitude);
-    const success = await locationDetailDoc.save([newLocation]);
-
-
-    return success;
+            } catch (err) {
+                console.log(err);
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    } catch (err) {
+        console.log(err);
+    }
 }
 
 async function createLocationApproxDoc(profile, location) {
 
     const publicTypeIndexUrl = profile.getNodeRef(solid.publicTypeIndex);
-    const publicTypeIndex = await fetchDocument(publicTypeIndexUrl); 
-    const storage = profile.getNodeRef(space.storage);
+    try { 
+        const publicTypeIndex = await fetchDocument(publicTypeIndexUrl); 
+        const storage = profile.getNodeRef(space.storage);
 
-    const locationApproxDocUrl = storage + 'public/approxlocation.ttl';   
-    const locationApproxDoc = createDocument(locationApproxDocUrl);
+        const locationApproxDocUrl = storage + 'public/approxlocation.ttl';   
+        const locationApproxDoc = createDocument(locationApproxDocUrl);
+        try { 
+            await locationApproxDoc.save();
 
-    await locationApproxDoc.save();
+            const typeRegistration = publicTypeIndex.addSubject();
+            typeRegistration.addNodeRef(rdf.type, solid.TypeRegistration)
+            typeRegistration.addNodeRef(solid.instance, locationApproxDoc.asNodeRef())
+            typeRegistration.addNodeRef(solid.forClass, schema.GeoCoordinates)
+            try { 
+                await publicTypeIndex.save([ typeRegistration]);
+                try { 
+                    const newLocation = await locationApproxDoc.addSubject();
 
-    const typeRegistration = publicTypeIndex.addSubject();
-    typeRegistration.addNodeRef(rdf.type, solid.TypeRegistration)
-    typeRegistration.addNodeRef(solid.instance, locationApproxDoc.asNodeRef())
-    typeRegistration.addNodeRef(solid.forClass, schema.GeoCoordinates)
-    await publicTypeIndex.save([ typeRegistration]);
-
-    const newLocation = await locationApproxDoc.addSubject();
-
-    newLocation.addNodeRef(rdf.type, schema.GeoCoordinates);
-    newLocation.addLiteral(schema.latitude, location.latitude.toFixed(3));
-    newLocation.addLiteral(schema.longitude, location.longitude.toFixed(3));
-    const success = await locationApproxDoc.save([newLocation]);
-
-
-    return success;
+                    newLocation.addNodeRef(rdf.type, schema.GeoCoordinates);
+                    newLocation.addLiteral(schema.latitude, location.latitude.toFixed(3));
+                    newLocation.addLiteral(schema.longitude, location.longitude.toFixed(3));
+                    try { 
+                        return await locationApproxDoc.save([newLocation]);
+                    } catch (err) {
+                        console.log(err);
+                    }
+                } catch (err) {
+                    console.log(err);
+                }
+            } catch (err) {
+                console.log(err);
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    } catch (err) {
+        console.log(err);
+    }
+    
 }
+
 async function createLocationGeneralDoc(profile, location) {
 
     const publicTypeIndexUrl = profile.getNodeRef(solid.publicTypeIndex);
-    const publicTypeIndex = await fetchDocument(publicTypeIndexUrl); 
-    const storage = profile.getNodeRef(space.storage);
+    try { 
+        const publicTypeIndex = await fetchDocument(publicTypeIndexUrl); 
+        const storage = profile.getNodeRef(space.storage);
 
-    const locationGeneralDocUrl = storage + 'public/genlocation.ttl';   
-    const locationGeneralDoc = createDocument(locationGeneralDocUrl);
+        const locationGeneralDocUrl = storage + 'public/genlocation.ttl';   
+        const locationGeneralDoc = createDocument(locationGeneralDocUrl);
+        try { 
+            await locationGeneralDoc.save();
 
-    await locationGeneralDoc.save();
+            const typeRegistration = publicTypeIndex.addSubject();
+            typeRegistration.addNodeRef(rdf.type, solid.TypeRegistration)
+            typeRegistration.addNodeRef(solid.instance, locationGeneralDoc.asNodeRef())
+            typeRegistration.addNodeRef(solid.forClass, schema.GeoCoordinates)
+            try { 
+                await publicTypeIndex.save([ typeRegistration]);
+                try { 
+                    const newLocation = await locationGeneralDoc.addSubject();
 
-    const typeRegistration = publicTypeIndex.addSubject();
-    typeRegistration.addNodeRef(rdf.type, solid.TypeRegistration)
-    typeRegistration.addNodeRef(solid.instance, locationGeneralDoc.asNodeRef())
-    typeRegistration.addNodeRef(solid.forClass, schema.GeoCoordinates)
-    await publicTypeIndex.save([ typeRegistration]);
-
-    const newLocation = await locationGeneralDoc.addSubject();
-
-    newLocation.addNodeRef(rdf.type, schema.GeoCoordinates);
-    newLocation.addLiteral(schema.latitude, location.latitude.toFixed(1));
-    newLocation.addLiteral(schema.longitude, location.longitude.toFixed(1));
-    const success = await locationGeneralDoc.save([newLocation]);
-
-
-    return success;
+                    newLocation.addNodeRef(rdf.type, schema.GeoCoordinates);
+                    newLocation.addLiteral(schema.latitude, location.latitude.toFixed(1));
+                    newLocation.addLiteral(schema.longitude, location.longitude.toFixed(1));
+                    try { 
+                        return await locationGeneralDoc.save([newLocation]);
+                    } catch (err) {
+                        console.log(err);
+                    }
+                } catch (err) {
+                    console.log(err);
+                }
+            } catch (err) {
+                console.log(err);
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    } catch (err) {
+        console.log(err);
+    }
 }
 
+//Initialize all location files
+async function initialiseLocationList(profile) { 
+   
+    try {    
+        var location = await fetchCoordinates();
+    } catch (err)  {
+        console.log(err);
+    }
+    try { 
+        await createLocationDetailDoc(profile, location);
+    } catch (err) {
+        console.log(err);
+    }
 
+    try { 
+        await createLocationApproxDoc(profile, location);
+    } catch (err) {
+        console.log(err);
+    }
 
-
-//Code below taken and modified from https://vincenttunru.gitlab.io/tripledoc/docs/writing-a-solid-app
-async function initialiseLocationList(profile, typeIndex) {
-    console.log("in initialize");
-    var location = {latitude: -37.7802993,longitude: 145.037028209939};
-    const storage = profile.getNodeRef(space.storage);
-
-    const locationDetailDocUrl = storage + 'public/detaillocation.ttl';
-
-    //Create the new document
-    const locationDetailDoc = createDocument(locationDetailDocUrl);
-
-    await locationDetailDoc.save();
-
-
-    //Store a reference to that document in the public Type Index;
-    const typeRegistration = typeIndex.addSubject();
-    typeRegistration.addNodeRef(rdf.type, solid.TypeRegistration)
-    typeRegistration.addNodeRef(solid.instance, locationDetailDoc.asNodeRef())
-    typeRegistration.addNodeRef(solid.forClass, schema.GeoCoordinates)
-    await typeIndex.save([ typeRegistration]);
-
-    const newLocation = await locationDetailDoc.addSubject();
-
-    newLocation.addNodeRef(rdf.type, schema.GeoCoordinates);
-    newLocation.addLiteral(schema.latitude, location.latitude);
-    newLocation.addLiteral(schema.longitude, location.longitude);
-    const success = await locationDetailDoc.save([newLocation]);
-
-
-    //These create the needed documents
-    //Did detail in initialize because of a previous error I received 
-    //which really didn't make sense, later I would like to try
-    //to do this again
-    //var detailDoc = await CreateLocationDetailDoc(profile, location);
-    var approxDoc = await createLocationApproxDoc(profile, location);
-    var generalDoc = await createLocationGeneralDoc(profile, location);
-
-    return  success;
+    try { 
+        await createLocationGeneralDoc(profile, location);
+    } catch (err) {
+        console.log(err);
+    }
+}
+async function addLocationDataToDoc(location, locationListEntry) {
+    try { 
+        var locationListUrl = await locationListEntry.getNodeRef(solid.instance);
+        try {     
+            var locationDoc =  await fetchDocument(locationListUrl);
+            console.log("This is the location doc " + JSON.stringify(locationDoc));
+            try {
+                await addLocation(location, locationDoc);
+            } catch (err) {
+                console.log(err);
+            }                
+        } catch (err) {
+            console.log(err);
+        }
+    } catch (err) {
+        console.log(err);
+    }
 }
 
-async function getLocationDoc(profile) {
+//Given that the user has access to these files another row of
+//recent location data will be loaded.  The user technically
+//should have access because it is their POD.
+//Also note, right now I know that they end up in this order
+//0 array entry detail, 1 = approximate, 2 = general to scale this
+//needs to have an additional check or way to determine this by name
+async function addLocationDataToAllDocs(location, locationListEntries) {
+    //Different location objects are needed so toFixed will work
+    var approxLocation = {latitude: "", longitude: ""};
+    var genLocation = {latitude: "", longitude: ""};
+    if (location !== undefined) { 
+        try { //Detail
+            await addLocationDataToDoc(location, locationListEntries[0]);
+        } catch (err) {
+            console.log(err);
+        }
+        try {  //Approximate
+            approxLocation.latitude = location.latitude.toFixed(3);
+            approxLocation.longitude = location.longitude.toFixed(3);
+            await addLocationDataToDoc(approxLocation, locationListEntries[1]);
+        } catch (err) {
+            console.log(err);
+        }
+        try { //General
+            genLocation.latitude = location.latitude.toFixed(1);
+            genLocation.longitude = location.longitude.toFixed(1);
+            await addLocationDataToDoc(genLocation, locationListEntries[2]);
+        } catch (err) {
+            console.log(err);
+        }          
+    } else {
+        console.log("Location was not found ");
+    }
+}
+
+//Right now it load all data without regard to permission from user, this is for testing
+//Once the data is loaded then the user can go and set specific permissions for the files
+async function processLocationData(profile) {
     //First attempt will be making it public, but really
     //want to make it private
     /*  
         Subject            Predicate                Object
         #location          rdf:type                 solid:TypeRegistration
         #location          solid:forClass           schema:GeoCoordinates
-        #location          solid:instance           /public/location.ttl
+        #location          solid:instance           /public/detaillocation.ttl
     */
     const publicTypeIndexUrl = profile.getNodeRef(solid.publicTypeIndex);
-    const publicTypeIndex = await fetchDocument(publicTypeIndexUrl);
-    const locationListEntries = publicTypeIndex.findSubjects(solid.forClass, schema.GeoCoordinates)
-    console.log("Location Entries" + locationListEntries);
-    //First time someone logs in
-    //This if statement is not working...
-    if (locationListEntries.length < 0) {
-    // the array is defined and has at least one element
-       return initialiseLocationList(profile, publicTypeIndex);
-    }
-    //need a way to make sure for instance that this entry 1 is detail.
-    //Add a new location before retrieving..  tricking part is adding to 
-    //each location entry detail, approx and general...  
-    //Need to think about how to check each one...
-    //Also if I am in updateLocation then it's my POD..
-
-    try { //Detail
-        var locationListUrl = await locationListEntries[0].getNodeRef(solid.instance);
-        var locationDoc =  await fetchDocument(locationListUrl);
+    
+    try {
+        var location = await fetchCoordinates();
     } catch (err) {
         console.log(err);
-        try {  //Approximate
-            locationListUrl = await locationListEntries[1].getNodeRef(solid.instance);
-            return await fetchDocument(locationListUrl);
-        } catch (err) {
-            console.log(err);
-            try { //General
-                locationListUrl = await locationListEntries[2].getNodeRef(solid.instance);
-                return await fetchDocument(locationListUrl);
+    }
+    try { 
+        const publicTypeIndex = await fetchDocument(publicTypeIndexUrl);
+        const locationListEntries = publicTypeIndex.findSubjects(solid.forClass, schema.GeoCoordinates)
+    
+
+        //if location list has entries just add a new entry
+        if (locationListEntries.length > 0) {
+            try { 
+                return addLocationDataToAllDocs(location,locationListEntries );
             } catch (err) {
                 console.log(err);
-            }
-        }
+            } 
+        } else {
+            return initialiseLocationList(profile, publicTypeIndex);
+ 
+        }    
+    } catch (err) {
+        console.log(err);
     }
-
-    return locationDoc; // use null then to check that they do not have location services available
 }
 const getData = async webId => {
-    const webIdDoc = await fetchDocument(webId);
-    /* 2. Read the Subject representing the current user: */
-    const user = webIdDoc.getSubject(webId);
-    /* 3. Get their foaf:name: */
-    var name = user.getLiteral(foaf.name);
-   
-  //  var locationDoc = await getLocationDoc(user);
-  
+    try { 
+        const webIdDoc = await fetchDocument(webId);
+        /* 2. Read the Subject representing the current user: */
+        const user = webIdDoc.getSubject(webId);
+        /* 3. Get their foaf:name: */
+       //var name = user.getLiteral(foaf.name);
+    
+        try {    
+            return await processLocationData(user);
+        } catch(err) {
+            console.log(err);
+        }
+    } catch (err) {
+        console.log(err);
+    }
 } 
 
 
  const UpdateLocation = ({ ToastManager }) => {
+    //var isLoading = false;  will use this later 
     const webId = useWebId();
 
      if (webId !== undefined) {
@@ -239,11 +340,10 @@ const getData = async webId => {
         getData(CUPurl);
     } else {
         //Not fetched yet.
-        const isLoading = true;
+        //isLoading = true;
     }
     
     const image = '';
-    const isLoading = false;
         return (
             <UpdateLocationWrapper data-testid="restaurant-component">
                 <UpdateLocationContainer>
@@ -254,8 +354,7 @@ const getData = async webId => {
                         <UpdateLocationContent
                             webId={CUPurl}
                             image={image}
-                            isLoading={isLoading}
-                        />
+                />
                         </Fragment>
 
                     )}
