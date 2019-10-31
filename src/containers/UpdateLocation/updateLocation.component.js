@@ -32,19 +32,22 @@ const fetchCoordinates = async () => {
     }
 };
 
-async function getDetailLocation() {
+async function getLocationDocument(locationListEntry) {
+  try {
+      var locationListUrl = await locationListEntry.getNodeRef(solid.instance);
+      try {
+        return await fetchDocument(locationListUrl);
+      } catch (err) {
+        console.log(err);
+      }
+  } catch (err) {
+    console.log(err);
+  }
 
+        
 }
 
-async function getApproxLocation() {
-
-}
-
-async function getGeneralLocation() {
-
-}
-
-async function getLocationDoc(profile) {
+async function selectAuthorizedLocationDoc(profile) {
     //First attempt will be making it public, but really
     //want to make it private
     /*  
@@ -54,36 +57,32 @@ async function getLocationDoc(profile) {
         #location          solid:instance           /public/location.ttl
     */
     const publicTypeIndexUrl = profile.getNodeRef(solid.publicTypeIndex);
-    const publicTypeIndex = await fetchDocument(publicTypeIndexUrl);
-    const locationListEntries = publicTypeIndex.findSubjects(solid.forClass, schema.GeoCoordinates)
+    try { 
+      const publicTypeIndex = await fetchDocument(publicTypeIndexUrl);
+      const locationListEntries = publicTypeIndex.findSubjects(solid.forClass, schema.GeoCoordinates)
     
-    //this is not working not sure how to check if ocation List Entries has
-    //data
-    if (locationListEntries.length >= 0)  {
+      if (locationListEntries.length >= 0)  {
   
-      try { //Detail
-        var locationListUrl = await locationListEntries[0].getNodeRef(solid.instance);
-        var locationDoc =  await fetchDocument(locationListUrl);
-      } catch (err) {
-        console.log(err);
-        try {  //Approximate
-            locationListUrl = await locationListEntries[1].getNodeRef(solid.instance);
-            return await fetchDocument(locationListUrl);
+        try { //Detail
+          return await getLocationDocument(locationListEntries[0]);
         } catch (err) {
+          console.log(err);
+          try {  //Approximate
+            return await getLocationDocument(locationListEntries[1]);
+          } catch (err) {
             console.log(err);
             try { //General
-                locationListUrl = await locationListEntries[2].getNodeRef(solid.instance);
-                return await fetchDocument(locationListUrl);
+                return await getLocationDocument(locationListEntries[2]);
             } catch (err) {
                 console.log(err);
             }
+          }
         }
-      }
-    } else {
-      return 1;
+      } else {
+        return 1;
+    } catch (err) {
+      console.log(err);
     }
-
-    return locationDoc; // use null then to check that they do not have location services available
 }
 
 const LocationCard = (props) => {
@@ -134,7 +133,7 @@ class UpdateLocationContent extends React.Component  {
       var name = user.getLiteral(foaf.name);
 
       try { 
-        var locationDoc = await getLocationDoc(user);
+        var locationDoc = await selectAuthorizedLocationDoc(user);
  
         if (locationDoc === 1) {
           this.setState({ error: "Your location is unknown" });
