@@ -13,26 +13,20 @@ import {
 //import { Container } from 'react-bootstrap';
 import { withToastManager } from 'react-toast-notifications';
 import zomato from '../../api/zomato';
-import { fetchDocument } from 'tripledoc';
-import { foaf, rdfs } from 'rdf-namespaces';
 import auth  from 'solid-auth-client';
 
 
   const getWebId = async () =>  {
-    let session = await auth.currentSession();
-    if (session) { 
-      console.log(session);
-      return session.webId;
+    try { 
+      let session = await auth.currentSession();
+      if (session) { 
+        return session.webId;
+      }
+    } catch (err) {
+      console.log(err);
     }
-
-    //const identityProvider = await getIdentifyProvider();
-
-    //auth.login(identityProvider);
   }
 
-  function getName(profile) {
-    return profile.getLiteral(foaf.name);
-  }
 
 const RestaurantCard = (props) => {
 
@@ -44,7 +38,6 @@ const RestaurantCard = (props) => {
 };
 
 const RestaurantCardList = (props) => {
-    console.log(props.restaurants);
     const restaurants = props.restaurants.map((restaurant) => {
       return <RestaurantCard key={restaurant.restaurant.id} restaurant={restaurant.restaurant.name} />
   }); 
@@ -59,17 +52,12 @@ class RestaurantSearchContent extends React.Component  {
   state = {restaurants: []};
 
   componentDidMount() {
-    this.getRestaurants();
-      
+    //Need to remember how to get what was passed in from container
+    //so I can grab lat and long
+    //this.getRestaurants(this.props.latitude, this.props.longitude);
+    this.getRestaurants(-37.7 , 144.9); 
   }
 
-
-
- /* async function getFriends(profile) {
-    const friendsDocumentUrl = profile.getNodeRef(rdfs.seeAlso);
-    const friendsDocument = await fetchDocument(friendsDocumentUrl);
-    return friendsDocument.getSubjectsOfType(foaf.Person);
-  } */
 
 //Need to get the location from the solid server and convert to the entity_id 
    async getLocation() {
@@ -82,13 +70,23 @@ class RestaurantSearchContent extends React.Component  {
 
    }
 
-   getRestaurants = async (term) => {
-        var location = this.getLocation();
-        const response = await zomato.get('/search', { 
-            params: { query: location }        
+   getRestaurants = async (latitude, longitude) => {
+       // var location = this.getLocation();
+       var location = "lat=" + latitude + "&lon=" + longitude;
+       console.log("location parameter: " + location);
+       try { 
+        const response = await zomato.get('/geocode', { 
+            params: { 
+              lat: latitude,
+              lon: longitude
+            }        
         });
+        console.log(response.data);
+         this.setState({ restaurants: response.data.nearby_restaurants });
+       } catch (err) {
+        console.log(err);
+       }
        
-        this.setState({ restaurants: response.data.restaurants });
         
     }
   render() { 

@@ -4,22 +4,14 @@ import { withTranslation } from 'react-i18next';
 import './friendList.css';
 import {
   WelcomeWrapper,
-  WelcomeCard,
-  LocationInputContainer,
-  GoButton
+  WelcomeCard
 } from './findMyFriend.style';
 //import { RestaurantCard  } from './components';
 //import { Container } from 'react-bootstrap';
 import { withToastManager } from 'react-toast-notifications';
 import openstreetmap from '../../api/openstreetmap';
 import { fetchDocument } from 'tripledoc';
-import { foaf, rdfs, rdf, solid, schema } from 'rdf-namespaces';
-import auth  from 'solid-auth-client';
-
-
-  function getName(profile) {
-    return profile.getLiteral(foaf.name);
-  }
+import { foaf, rdf, solid, schema } from 'rdf-namespaces';
 
 const FriendCard = (props) => {
       return (
@@ -46,7 +38,7 @@ class FindMyFriendContent extends React.Component  {
   state = {friends: []};
 
   componentDidMount() {
-    console.log(this.props.webId);
+  
     this.getFriends(this.props.webId);
       
   }
@@ -57,7 +49,7 @@ class FindMyFriendContent extends React.Component  {
     const response = await openstreetmap.get('/reverse', { 
             params: { format: "geocodejson", lat: latitude, lon: longitude}        
         }); 
-    console.log("response " + JSON.stringify(response));
+   
     return response.data.features[0].properties.geocoding.label;
  
   }
@@ -107,20 +99,17 @@ class FindMyFriendContent extends React.Component  {
     const friendsDocumentUrls = profile.getAllNodeRefs(foaf.knows);
   
    //friendsDocumentUrls is a list of links of friends, their web ID
+   //Need to handle if they have no friends.  Display no friends or something like that
     for (var i = 0; i < friendsDocumentUrls.length; i++) { 
  
-       const friendsDocument = await fetchDocument(friendsDocumentUrls[i]);
-        const friend = await friendsDocument.getSubject(friendsDocumentUrls[i]);
-        
-
-        var friendName = friend.getLiteral(foaf.name);
-        console.log("Friend Name " + friendName);
+      const friendsDocument = await fetchDocument(friendsDocumentUrls[i]);
+      const friend = await friendsDocument.getSubject(friendsDocumentUrls[i]);
+      var friendName = friend.getLiteral(foaf.name);
+   
       try { 
         locationDoc = await this.getFriendLocationDoc(friend);
         try { 
           const location = await locationDoc.getSubject();
-          console.log("get data location " + JSON.stringify(location));
-          console.log(location.getNodeRef(rdf.type, schema.GeoCoordinates)); //returning null
           var latitude = location.getLiteral(schema.latitude); //returning null
           var longitude = location.getLiteral(schema.longitude); //returning null
           var place = await this.getPlace(latitude, longitude);

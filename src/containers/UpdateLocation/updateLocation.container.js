@@ -9,7 +9,7 @@ import {
     UpdateLocationWrapper
 } from './updateLocation.style';
 import { fetchDocument, createDocument } from 'tripledoc';
-import { solid, foaf, schema, space, rdf } from 'rdf-namespaces';
+import { solid, schema, space, rdf } from 'rdf-namespaces';
 
 //NEED TO ASK PERMISSION TO ADD LOCATION....
 //Got the getCurrentPosition async/await from 
@@ -20,11 +20,12 @@ function getCurrentPosition(options = {}) {
     });
 }
 
+/* want to add this in
 function getPermission() {  
     navigator.permissions.query({name:'geolocation'}).then(function(result) {
         return result.state;
     }); 
-} 
+} */
 
 const fetchCoordinates = async () => {
     //var permission = getPermission();

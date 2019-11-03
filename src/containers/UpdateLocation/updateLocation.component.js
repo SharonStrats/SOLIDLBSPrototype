@@ -8,29 +8,9 @@ import {
 } from './updateLocation.style';
 import { withToastManager } from 'react-toast-notifications';
 import { fetchDocument } from 'tripledoc';
-import { solid, foaf, schema } from 'rdf-namespaces';
+import { solid, schema } from 'rdf-namespaces';
 import openstreetmap from '../../api/openstreetmap';
 
-
-//Got the getCurrentPosition async/await from 
-//https://blog.larapulse.com/es-2015/synchronous-fetch-browser-geolocation
-function getCurrentPosition(options = {}) {
-    return new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, options);
-    });
-}
-
-const fetchCoordinates = async () => {
-    try {
-        const { coords } = await getCurrentPosition();
-        const { latitude, longitude } = coords;
-        return {latitude: latitude, longitude: longitude};
-        // Handle coordinates
-    } catch (error) {
-        // Handle error
-        console.error(error);
-    }
-};
 
 async function getLocationDocument(locationListEntry) {
   try {
@@ -59,8 +39,8 @@ async function selectAuthorizedLocationDoc(profile) {
     const publicTypeIndexUrl = profile.getNodeRef(solid.publicTypeIndex);
     try { 
       const publicTypeIndex = await fetchDocument(publicTypeIndexUrl);
-      const locationListEntries = publicTypeIndex.findSubjects(solid.forClass, schema.GeoCoordinates)
-    
+      const locationListEntries = publicTypeIndex.findSubjects(solid.forClass, schema.GeoCoordinates);
+
       if (locationListEntries.length >= 0)  {
   
         try { //Detail
@@ -80,6 +60,7 @@ async function selectAuthorizedLocationDoc(profile) {
         }
       } else {
         return 1;
+      } 
     } catch (err) {
       console.log(err);
     }
@@ -106,7 +87,7 @@ class UpdateLocationContent extends React.Component  {
   
 
   componentDidMount() {
-    var data = this.getData(this.props.webId);
+    this.getData(this.props.webId);
       
   }
 
@@ -130,7 +111,7 @@ class UpdateLocationContent extends React.Component  {
       /* 2. Read the Subject representing the current user: */
       const user = webIdDoc.getSubject(webId);
       /* 3. Get their foaf:name: */
-      var name = user.getLiteral(foaf.name);
+      //var name = user.getLiteral(foaf.name);
 
       try { 
         var locationDoc = await selectAuthorizedLocationDoc(user);

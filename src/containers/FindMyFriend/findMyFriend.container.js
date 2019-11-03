@@ -6,8 +6,8 @@ import {
     FindMyFriendContainer,
     FindMyFriendWrapper
 } from './findMyFriend.style';
-import { foaf } from 'rdf-namespaces';
 import { fetchDocument } from 'tripledoc';
+import { foaf } from 'rdf-namespaces';
 import FindMyFriendContent from './findMyFriend.component';
 
 
@@ -19,22 +19,18 @@ const getData = async webId => {
     /* 3. Get their foaf:name: */
     var name = user.getLiteral(foaf.name);
    
-   return null;
+   return {webIdDoc: webIdDoc, user: user, name: name};
 } 
 
  const FindMyFriendSearch = ({ ToastManager }) => {
-    const isLoading = false;
+    var isLoading = true;
     const webId = useWebId();
      if (webId !== undefined) {
         var data = getData(webId);
+        isLoading = false;
 
-    } else {
-        //Not fetched yet.
-        const isLoading = true;
-    }
+    } 
     
-    const coolImage = '';
-
         return (
             <FindMyFriendWrapper data-testid="findmyfriend-component">
                 <FindMyFriendContainer>
@@ -45,7 +41,6 @@ const getData = async webId => {
                         <FindMyFriendContent
                             webId={webId}
                             name={data.name}
-                            image={coolImage}
                             isLoading={isLoading}
                         /> 
                         </Fragment>
