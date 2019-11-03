@@ -4,28 +4,14 @@ import { withTranslation } from 'react-i18next';
 import './restaurantList.css';
 import {
   WelcomeWrapper,
-  WelcomeCard,
-  WeatherContainer,
-  LocationInputContainer,
-  GoButton
+  WelcomeCard
 } from './restaurantSearch.style';
 //import { RestaurantCard  } from './components';
 //import { Container } from 'react-bootstrap';
 import { withToastManager } from 'react-toast-notifications';
 import zomato from '../../api/zomato';
-import auth  from 'solid-auth-client';
-
-
-  const getWebId = async () =>  {
-    try { 
-      let session = await auth.currentSession();
-      if (session) { 
-        return session.webId;
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  }
+import { fetchDocument} from 'tripledoc';
+import { solid,  schema} from 'rdf-namespaces';
 
 
 const RestaurantCard = (props) => {
@@ -44,36 +30,23 @@ const RestaurantCardList = (props) => {
       return <div className="restaurant-list">{restaurants}</div>;  
 };
 
+
 class RestaurantSearchContent extends React.Component  {
   
   //var events = props.events;
   //var sd = props.selectedDate;
 
-  state = {restaurants: []};
+  state = {name: "" ,restaurants: []};
 
   componentDidMount() {
-    //Need to remember how to get what was passed in from container
-    //so I can grab lat and long
-    //this.getRestaurants(this.props.latitude, this.props.longitude);
-    this.getRestaurants(-37.7 , 144.9); 
+  
+    this.getData(this.props.webId);
+
+   
   }
 
-
-//Need to get the location from the solid server and convert to the entity_id 
-   async getLocation() {
-    var testProfile = await getWebId();
-    //var name = getName(testProfile); 
-    console.log(testProfile);
-    //console.log("Name: " + name);
-
-    return 'entity_id=94741%20&entity_type=zone';
-
-   }
-
    getRestaurants = async (latitude, longitude) => {
-       // var location = this.getLocation();
-       var location = "lat=" + latitude + "&lon=" + longitude;
-       console.log("location parameter: " + location);
+
        try { 
         const response = await zomato.get('/geocode', { 
             params: { 
@@ -86,9 +59,79 @@ class RestaurantSearchContent extends React.Component  {
        } catch (err) {
         console.log(err);
        }
-       
-        
+         
     }
+
+
+getLocationDoc = async profile => {
+    //First attempt will be making it public, but really
+    //want to make it private
+    /*  
+        Subject            Predicate                Object
+        #location          rdf:type                 solid:TypeRegistration
+        #location          solid:forClass           schema:GeoCoordinates
+        #location          solid:instance           /public/location.ttl
+    */
+    const publicTypeIndexUrl = profile.getNodeRef(solid.publicTypeIndex);
+    const publicTypeIndex = await fetchDocument(publicTypeIndexUrl);
+    const locationListEntry = publicTypeIndex.findSubjects(solid.forClass, schema.GeoCoordinates)
+    //locationListEntry should be the name of location urls
+    //this really should contain all (need to look into data)
+
+    //I should not initialize here because it should already be defined
+    //otherwise I need to message "Location information is not available."
+    console.log("location list entry: " + JSON.stringify(locationListEntry));
+    if (locationListEntry === null) {
+      // return initialiseLocationList(profile, publicTypeIndex);
+    }
+    //need a way to make sure for instance that this entry 1 is detail.
+    try { //Detail
+        var locationListUrl = await locationListEntry[0].getNodeRef(solid.instance);
+        return await fetchDocument(locationListUrl);
+    } catch (err) {
+        console.log(err);
+        try {  //Approximate
+            locationListUrl = await locationListEntry[1].getNodeRef(solid.instance);
+            return await fetchDocument(locationListUrl);
+        } catch (err) {
+            console.log(err);
+            try { //General
+                locationListUrl = await locationListEntry[2].getNodeRef(solid.instance);
+                return await fetchDocument(locationListUrl);
+            } catch (err) {
+                console.log(err);
+            }
+        }
+    }
+    return null; // use null then to check that they do not have location services available
+}
+
+  getData = async webId => {
+    // loading new events
+    var latitude = "";
+    var longitude = "";
+    try { 
+        const webIdDoc = await fetchDocument(webId);
+        /* 2. Read the Subject representing the current user: */
+        const user = webIdDoc.getSubject(webId);
+
+        try { 
+            var locationDoc = await this.getLocationDoc(user);
+            try { 
+                const location = await locationDoc.getSubject();
+                latitude = location.getLiteral(schema.latitude); //returning null
+                longitude = location.getLiteral(schema.longitude); //returning null
+                this.getRestaurants(latitude, longitude);
+            } catch (err) {
+                console.log(err);
+            }
+        } catch (err) {
+            console.log(err);
+        }
+    } catch (err) {
+        console.log(err);
+    }
+} 
   render() { 
     
   
@@ -97,20 +140,14 @@ class RestaurantSearchContent extends React.Component  {
     <WelcomeWrapper data-testid="welcome-wrapper">
       <WelcomeCard className="card">
         <h3>
-          Welcome <span>{this.props.name}</span>
+          Welcome <span></span>
         </h3>
-        <LocationInputContainer>
-          <p>Show me restaurants in <input id='locationInput' placeholder="city state" /><GoButton onClick={() => console.log("hello")}>Go!</GoButton></p>
-          <span id='inputErrorMessage' />
-        </LocationInputContainer>
+ 
         <p>
-          Now showing you restaurants nearby <span>{this.props.city}, {this.props.state}</span>
+          Now showing you restaurants nearby <span> May add city and state back in</span>
         </p>
       <RestaurantCardList restaurants={this.state.restaurants}/>
       </WelcomeCard>
-      <WeatherContainer>
-
-      </WeatherContainer>
     </WelcomeWrapper>
   );
   }

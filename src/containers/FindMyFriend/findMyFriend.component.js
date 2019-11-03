@@ -11,7 +11,7 @@ import {
 import { withToastManager } from 'react-toast-notifications';
 import openstreetmap from '../../api/openstreetmap';
 import { fetchDocument } from 'tripledoc';
-import { foaf, rdf, solid, schema } from 'rdf-namespaces';
+import { foaf, solid, schema } from 'rdf-namespaces';
 
 const FriendCard = (props) => {
       return (

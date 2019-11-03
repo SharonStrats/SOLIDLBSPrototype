@@ -56,14 +56,6 @@ export const Form = styled.form`
   `}
 `;
 
-export const Button = styled.button`
-    max-width: 128px;
-    display: inline-block;
-
-    &:first-child {
-        margin-right: 10px;
-    }
-`;
 
 export const FullGridSize = styled.div`
     grid-column: span 1;
@@ -91,61 +83,6 @@ export const WebId = styled.div`
     }
 `;
 
-export const ShexForm = styled.div`
-border: solid #cacaca 1px;
-background: #f9f9f9;
-    label {
-      clear: both;
-    }
-    & .shexForm {
-        border: none;
-        background: transparent;
-        box-sizing: border-box;
-        padding: 0 12px;
-    }
-
-    & .shexPanel {
-        border: solid #cacaca 1px;
-        background: #ffffff;
-        box-sizing: border-box;
-        padding: 12px;
-        position: relative;
-    }
-
-    & .shexRoot {
-        border: none;
-        background: transparent;
-    }
-
-    & .deleteButton {
-        margin: 0 4px 0 12px;
-        position: relative;
-        float: right;
-        width: 100px;
-        color: #fb4a3e;
-        border-color: #fb4a3e;
-        &:hover {
-            background: rgba(251, 74, 62, 0.8);
-            color: #fff;
-        }
-    }
-
-    & .addButton {
-        width: 210px;
-        color: rgb(145, 194, 250);
-        border-color: rgb(145, 194, 250);
-        background: #fff;
-        padding: 5px 30px;
-        &:hover {
-            background: rgba(145, 194, 250, 0.8);
-            color: #fff;
-        }
-
-        & .inputContainer {
-            padding: 12px;
-        }
-    }
-`;
 export const WelcomeWrapper = styled.section`
   top:0;
   bottom:0;
@@ -192,29 +129,6 @@ export const WelcomeCard = styled.div`
   }
 `;
 
-export const WeatherContainer = styled.div`
-  max-width:1200px;
-  display: flex;
-  position:relative;
-  flex-direction: row !important;
-  align-items: center;
-  margin: 30px auto;
-  height:60% !important;
-`;
-
-export const LocationInputContainer = styled.div`
-  flex-direction: row;
-`
-
-export const LocationInput = styled.div`
-
-`
-
-export const GoButton = styled.button`
-  background-color: #333333;
-  color: #eeeeee;
-`
-
 
 
 export const WelcomeLogo = styled.div`
@@ -258,17 +172,6 @@ export const WelcomeProfile = styled.div`
     }
   `}
 `;
-
-export const ImageWrapper = styled.div`
-display: flex;
-justify-content: center;
-align-items: center;
-
-button {
-  margin-left: 0px;
-}
-`;
-
 
 
 export const AutoSaveNotification = styled.section`
