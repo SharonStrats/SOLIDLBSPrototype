@@ -130,8 +130,8 @@ async function createLocationApproxDoc(profile, location) {
                     const newLocation = await locationApproxDoc.addSubject();
 
                     newLocation.addNodeRef(rdf.type, schema.GeoCoordinates);
-                    newLocation.addLiteral(schema.latitude, location.latitude.toFixed(3));
-                    newLocation.addLiteral(schema.longitude, location.longitude.toFixed(3));
+                    newLocation.addLiteral(schema.latitude, location.latitude.toFixed(2));
+                    newLocation.addLiteral(schema.longitude, location.longitude.toFixed(2));
                     try { 
                         return await locationApproxDoc.save([newLocation]);
                     } catch (err) {

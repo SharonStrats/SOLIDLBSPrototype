@@ -13,6 +13,59 @@ import openstreetmap from '../../api/openstreetmap';
 import { fetchDocument } from 'tripledoc';
 import { foaf, solid, schema } from 'rdf-namespaces';
 
+async function getLocationDocument(locationListEntry) {
+  try {
+      var locationListUrl = await locationListEntry.getNodeRef(solid.instance);
+      try {
+        return await fetchDocument(locationListUrl);
+      } catch (err) {
+        console.log(err);
+      }
+  } catch (err) {
+    console.log(err);
+  }
+
+        
+}
+
+async function selectAuthorizedLocationDoc(profile) {
+    //First attempt will be making it public, but really
+    //want to make it private
+    /*  
+        Subject            Predicate                Object
+        #location          rdf:type                 solid:TypeRegistration
+        #location          solid:forClass           schema:GeoCoordinates
+        #location          solid:instance           /public/location.ttl
+    */
+    const publicTypeIndexUrl = profile.getNodeRef(solid.publicTypeIndex);
+    try { 
+      const publicTypeIndex = await fetchDocument(publicTypeIndexUrl);
+      const locationListEntries = publicTypeIndex.findSubjects(solid.forClass, schema.GeoCoordinates);
+
+      if (locationListEntries.length >= 0)  {
+  
+        try { //Detail
+          return await getLocationDocument(locationListEntries[0]);
+        } catch (err) {
+          console.log(err);
+          try {  //Approximate
+            return await getLocationDocument(locationListEntries[1]);
+          } catch (err) {
+            console.log(err);
+            try { //General
+                return await getLocationDocument(locationListEntries[2]);
+            } catch (err) {
+                console.log(err);
+            }
+          }
+        }
+      } else {
+        return 1;
+      } 
+    } catch (err) {
+      console.log(err);
+    }
+}
 const FriendCard = (props) => {
       return (
       <div className="card">
@@ -54,43 +107,6 @@ class FindMyFriendContent extends React.Component  {
  
   }
 
- getFriendLocationDoc = async(friend) => {
-      try { 
-       console.log("public type index " + friend );
-        const publicTypeIndexUrl = friend.getNodeRef(solid.publicTypeIndex);
-        console.log("public type index " + publicTypeIndexUrl );
-        try { 
-          const publicTypeIndex = await fetchDocument(publicTypeIndexUrl);
-          const locationListEntry = publicTypeIndex.findSubjects(solid.forClass, schema.GeoCoordinates)
-          
-          try { //Detail
-            var locationListUrl = await locationListEntry[0].getNodeRef(solid.instance);
-            return await fetchDocument(locationListUrl);
-          } catch (err) {
-            console.log(err);
-            try {  //Approximate
-              locationListUrl = await locationListEntry[1].getNodeRef(solid.instance);
-              return await fetchDocument(locationListUrl);
-            } catch (err) {
-              console.log(err);
-              try { //General
-                locationListUrl = await locationListEntry[2].getNodeRef(solid.instance);
-                return await fetchDocument(locationListUrl);
-              } catch (err) {
-                console.log(err);
-              }
-            }
-          }
-        } catch(err) {
-        console.log(err);
-      }
-    } catch(err) {
-      console.log(err);
-    }
-
-    return null;
- }
-
  getFriends = async(webId) => {
  
     var locationDoc = "";
@@ -107,17 +123,20 @@ class FindMyFriendContent extends React.Component  {
       var friendName = friend.getLiteral(foaf.name);
    
       try { 
-        locationDoc = await this.getFriendLocationDoc(friend);
+        locationDoc = await selectAuthorizedLocationDoc(friend);
         try { 
           const location = await locationDoc.getSubject();
           var latitude = location.getLiteral(schema.latitude); //returning null
           var longitude = location.getLiteral(schema.longitude); //returning null
-          var place = await this.getPlace(latitude, longitude);
-          console.log(latitude);
-          console.log(longitude);
-          var friendToAdd = {id:i , name: friendName, latitude: latitude, longitude: longitude, location:place};
+          try { 
+            var place = await this.getPlace(latitude, longitude);
+              
+            var friendToAdd = {id:i , name: friendName, latitude: latitude, longitude: longitude, location:place};
         
-          var friends = [...friends, friendToAdd];
+            var friends = [...friends, friendToAdd];
+          } catch (err) {
+            console.log(err);
+          }
         } catch (err) {
           console.log(err);
         }
