@@ -1,4 +1,16 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# SOLID Project - Location data in Solid (Linked Data)
+This project was bootstrapped with https://github.com/inrupt/generator-solid-react.
+
+## Details
+This is my first React project and introduction to SOLID. I used a library to read/write data
+to the POD, called Triple Doc, that is no longer the library we should use. The creator
+has since built another library that has more features.
+
+You can see this at sigmafied.com however it needs to be updated and also needs new certs, 
+which is on my list of todos.
+
+
+
 
 ## Available Scripts
 
